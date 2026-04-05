@@ -7,22 +7,13 @@ class AuthService {
 
   AuthService(this._apiClient);
 
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    try {
-      final response = await _apiClient.post(
-        ApiConstants.login,
-        data: {'email': email, 'password': password},
-      );
-      return response.data;
-    } on DioException catch (e) {
-      throw _handleError(e);
-    }
-  }
-
+  // ------------------------
+  // REGISTER DONOR
+  // ------------------------
   Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
     try {
       final response = await _apiClient.post(
-        ApiConstants.register,
+        ApiConstants.registerDonor,
         data: userData,
       );
       return response.data;
@@ -31,6 +22,9 @@ class AuthService {
     }
   }
 
+  // ------------------------
+  // ERROR HANDLER
+  // ------------------------
   String _handleError(DioException error) {
     if (error.response != null) {
       return error.response?.data['message'] ?? 'Server error';

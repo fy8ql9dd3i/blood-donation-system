@@ -26,6 +26,21 @@
     "registration_date": "Guyyaa galmaa’inaa",
     "donation_date": "Guyyaa kennuu",
     "location": "Iddoo",
+    "find_donor_centers": "Manni kennaa barbaadduu",
+    "enter_address": "Teessoo galchi",
+    "could_not_find_location": "Iddoo argachuu hin danda'ame",
+    "english": "English",
+    "amharic": "Amharic",
+    "afaan_oromoo": "Afaan Oromoo",
     "no_notifications": "Beeksisa hin jiru",
-    "no_history": "Seenaan kennaa hin jiru"
+    "no_history": "Seenaan kennaa hin jiru",
+    "registered_successfully": "Milkaa’inaan galmaa’ame",
+    "name_required": "Maqaa guutuu barbaachisa",
+    "phone_required": "Lakkoofsa bilbilaa barbaachisa",
+    "age_required": "Umurii barbaachisa",
+    "address_required": "Teessoo barbaachisa",
+    "password_required": "Jecha iccitii barbaachisa",
+    "donor_registration": "Galmaa’ina Dhaaltuu",
+    "dashboard": "Daashbordii",
+    "retry": "Ira-deebi’i yaali"
 }

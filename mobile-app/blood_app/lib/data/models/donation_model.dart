@@ -15,11 +15,11 @@ class DonationModel {
 
   factory DonationModel.fromJson(Map<String, dynamic> json) {
     return DonationModel(
-      donationId: json['donationId'],
-      donorId: json['donorId'],
+      donationId: json['donationId'] ?? json['donationID'] ?? json['id'],
+      donorId: json['donorId'] ?? json['donorID'],
       donationDate: DateTime.parse(json['donationDate']),
       location: json['location'],
-      amount: json['amount'],
+      amount: json['amount'] ?? json['quantity'],
     );
   }
 }

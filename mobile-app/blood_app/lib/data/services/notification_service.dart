@@ -10,7 +10,7 @@ class NotificationService {
   Future<List<dynamic>> getNotifications() async {
     try {
       final response = await _apiClient.get(ApiConstants.notifications);
-      return response.data;
+      return response.data['data'] ?? response.data;
     } on DioException catch (e) {
       throw _handleError(e);
     }

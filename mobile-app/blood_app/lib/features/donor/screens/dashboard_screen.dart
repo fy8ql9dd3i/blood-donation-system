@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/donor_repository.dart';
 import '../../../data/models/donor_model.dart';
 import '../../../widgets/loading_widget.dart';
+import '../../../app/routes.dart';
 import '../widgets/donor_card.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -22,21 +25,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _profileFuture = context.read<DonorRepository>().getProfile();
   }
 
+  String _getErrorMessage(dynamic error) {
+    if (error is SocketException) {
+      return 'Network error. Please check your internet connection.';
+    } else if (error is HttpException) {
+      return 'Server error. Please try again later.';
+    } else {
+      return 'An unexpected error occurred. Please try again.';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await context.read<AuthRepository>().logout();
-              if (!mounted) return;
-              Navigator.pushReplacementNamed(context, '/login');
-            },
-          ),
-        ],
+        title: Text('dashboard'.tr()),
       ),
       body: FutureBuilder<DonorModel>(
         future: _profileFuture,
@@ -44,9 +47,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const LoadingWidget();
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(_getErrorMessage(snapshot.error)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _profileFuture = context
+                            .read<DonorRepository>()
+                            .getProfile();
+                      });
+                    },
+                    child: Text('retry'.tr()),
+                  ),
+                ],
+              ),
+            );
           } else if (!snapshot.hasData) {
-            return const Center(child: Text('No data'));
+            return Center(child: Text('no_data'.tr()));
           }
           final donor = snapshot.data!;
           return RefreshIndicator(
@@ -62,25 +83,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(height: 20),
                 _buildActionButton(
                   icon: Icons.history,
-                  label: 'Donation History',
+                  label: 'history'.tr(),
                   onTap: () => Navigator.pushNamed(context, '/history'),
                 ),
                 const SizedBox(height: 12),
                 _buildActionButton(
                   icon: Icons.map,
-                  label: 'Map',
+                  label: 'map'.tr(),
                   onTap: () => Navigator.pushNamed(context, '/map'),
                 ),
                 const SizedBox(height: 12),
                 _buildActionButton(
                   icon: Icons.notifications,
-                  label: 'Notifications',
+                  label: 'notifications'.tr(),
                   onTap: () => Navigator.pushNamed(context, '/notifications'),
                 ),
                 const SizedBox(height: 12),
                 _buildActionButton(
                   icon: Icons.settings,
-                  label: 'Settings',
+                  label: 'settings'.tr(),
                   onTap: () => Navigator.pushNamed(context, '/language'),
                 ),
               ],

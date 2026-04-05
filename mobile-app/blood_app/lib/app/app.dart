@@ -49,7 +49,7 @@ class App extends StatelessWidget {
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
-        initialRoute: Routes.login,
+        initialRoute: Routes.language,
         onGenerateRoute: Routes.generateRoute,
       ),
     );

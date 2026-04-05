@@ -1,10 +1,18 @@
 class ApiConstants {
-  static const String baseUrl =
-      'http://10.0.2.2:3000/api'; // Change to your backend
-  static const String register = '/auth/register';
-  static const String login = '/auth/login';
-  static const String profile = '/donor/profile';
-  static const String history = '/donor/history';
+  static const String baseUrl = 'http://10.161.117.218:5000/api';
+
+  // Donor
+  static const String registerDonor = '/auth/register-donor';
+  static const String profile = '/donors/profile';
+  static const String updateProfile = '/donors/profile';
+  static const String history = '/donations/history';
+  static const String getAllDonors = '/donors';
+
+  // Notifications
   static const String notifications = '/notifications';
+  static const String respondNotification = '/notifications/respond';
+
+  // Other
   static const String mapCoordinates = '/map/coordinates';
 }
+

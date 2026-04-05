@@ -27,5 +27,17 @@
     "donation_date": "Guyyaa kennuu",
     "location": "Iddoo",
     "no_notifications": "Beeksisa hin jiru",
-    "no_history": "Seenaan kennaa hin jiru"
+    "no_history": "Seenaan kennaa hin jiru",
+    "donor_registration": "Galmee Kennaa",
+    "name_required": "Maqaan dirqama",
+    "phone_required": "Lakkoofsi bilbilaa dirqama",
+    "age_required": "Umuriin dirqama",
+    "address_required": "Teessoon dirqama",
+    "registered_successfully": "Galmeen siif milkaaʼeera! Eegaa hayyamaaf.",
+    "password_required": "Jecha iccitii dirqama",
+    "server_error": "Dogoggora tajaajila",
+    "dashboard": "Dashboard",
+    "settings": "Qindaa'inoota",
+    "retry": "Deebi'ii yaalii",
+    "no_data": "Daataa hin jiru"
 }

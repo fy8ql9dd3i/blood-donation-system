@@ -26,6 +26,21 @@
     "registration_date": "የተመዘገቡበት ቀን",
     "donation_date": "የልገሳ ቀን",
     "location": "አካባቢ",
+    "find_donor_centers": "የደንበኞችን ማዕከላት ፈልግ",
+    "enter_address": "አድራሻ አስገባ",
+    "could_not_find_location": "አካባቢውን ማግኘት አልተቻለም",
+    "english": "Ingiliizi",
+    "amharic": "አማርኛ",
+    "afaan_oromoo": "Afaan Oromoo",
     "no_notifications": "ምንም ማሳወቂያ የለም",
-    "no_history": "እስካሁን የልገሳ ታሪክ የለም"
+    "no_history": "እስካሁን የልገሳ ታሪክ የለም",
+    "registered_successfully": "በተሳካ መልክ ተመዘገቡ",
+    "name_required": "ሙሉ ስም አስፈላጊ ነው",
+    "phone_required": "ስልክ ቁጥር አስፈላጊ ነው",
+    "age_required": "ዕድሜ አስፈላጊ ነው",
+    "address_required": "አድራሻ አስፈላጊ ነው",
+    "password_required": "የይለፍ ቃል አስፈላጊ ነው",
+    "donor_registration": "የለጋሽ ምዝገባ",
+    "dashboard": "ዳሽቦርድ",
+    "retry": "እንደገና ሞክር"
 }

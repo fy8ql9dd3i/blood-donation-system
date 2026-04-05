@@ -26,6 +26,21 @@
     "registration_date": "Registered on",
     "donation_date": "Donation Date",
     "location": "Location",
+    "find_donor_centers": "Find Donor Centers",
+    "enter_address": "Enter address",
+    "could_not_find_location": "Could not find location",
+    "english": "English",
+    "amharic": "Amharic",
+    "afaan_oromoo": "Afaan Oromoo",
     "no_notifications": "No notifications",
-    "no_history": "No donation history yet"
+    "no_history": "No donation history yet",
+    "registered_successfully": "Registered successfully",
+    "name_required": "Full name is required",
+    "phone_required": "Phone number is required",
+    "age_required": "Age is required",
+    "address_required": "Address is required",
+    "password_required": "Password is required",
+    "donor_registration": "Donor Registration",
+    "dashboard": "Dashboard",
+    "retry": "Retry"
 }

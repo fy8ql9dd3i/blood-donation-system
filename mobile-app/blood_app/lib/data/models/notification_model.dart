@@ -1,28 +1,31 @@
 class NotificationModel {
-  final int id;
+  final String id;
   final int donorId;
   final String title;
-  final String body;
+  final String message;
   final DateTime createdAt;
   final bool read;
+  final String response;
 
   NotificationModel({
     required this.id,
     required this.donorId,
     required this.title,
-    required this.body,
+    required this.message,
     required this.createdAt,
     required this.read,
+    required this.response,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     return NotificationModel(
-      id: json['id'],
+      id: json['id'].toString(), // UUID
       donorId: json['donorId'],
       title: json['title'],
-      body: json['body'],
+      message: json['message'] ?? '',
       createdAt: DateTime.parse(json['createdAt']),
-      read: json['read'],
+      read: json['read'] ?? false,
+      response: json['response'] ?? 'NO_RESPONSE',
     );
   }
 }
