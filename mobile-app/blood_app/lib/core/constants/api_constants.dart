@@ -1,5 +1,6 @@
 class ApiConstants {
-  static const String baseUrl = 'http://10.161.117.218:5000/api';
+  // static const String baseUrl = 'http://localhost:5000/api'; // Use for local browser dev
+  static const String baseUrl = 'http://10.161.121.202:5000/api'; // Use for mobile device dev (matches current IP)
 
   // Donor
   static const String registerDonor = '/auth/register-donor';

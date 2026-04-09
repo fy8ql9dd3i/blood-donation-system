@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../data/repositories/donor_repository.dart';
 import '../../../data/models/donor_model.dart';
 import '../../../widgets/custom_button.dart';
@@ -148,10 +149,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     enabled: _isEditing,
                   ),
                   const SizedBox(height: 16),
-                  CustomInput(
-                    controller: _languageController,
-                    label: 'Language (en, am, or)',
-                    enabled: _isEditing,
+                  DropdownButtonFormField<String>(
+                    value: ['en', 'am', 'or'].contains(_languageController.text) 
+                        ? _languageController.text 
+                        : 'en',
+                    decoration: InputDecoration(
+                      labelText: 'Language',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'en', child: Text('English')),
+                      DropdownMenuItem(value: 'am', child: Text('አማርኛ / Amharic')),
+                      DropdownMenuItem(value: 'or', child: Text('Afaan Oromoo')),
+                    ],
+                    onChanged: _isEditing ? (value) {
+                      if (value != null) {
+                        setState(() {
+                          _languageController.text = value;
+                          context.setLocale(Locale(value));
+                        });
+                      }
+                    } : null,
                   ),
                   const SizedBox(height: 24),
                   if (_isEditing && _isSaving) const LoadingWidget(),
