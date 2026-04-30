@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../data/repositories/notification_repository.dart';
-import '../../../data/models/notification_model.dart';
-import '../../../widgets/loading_widget.dart';
+import '../data/notification_repository.dart';
+import '../../../core/models/notification_model.dart';
+import '../../../shared/widgets/loading_widget.dart';
 import '../widgets/notification_item.dart';
 
 class NotificationScreen extends StatelessWidget {

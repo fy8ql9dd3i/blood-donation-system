@@ -20,6 +20,10 @@ const donorService = {
   donate: async (donorId, units) => {
     const response = await api.post('/donations', { donorId, units });
     return response.data;
+  },
+  deleteDonor: async (id) => {
+    const response = await api.delete(`/donors/${id}`);
+    return response.data;
   }
 };
 

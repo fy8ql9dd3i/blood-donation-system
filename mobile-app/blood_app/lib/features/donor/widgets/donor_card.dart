@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/donor_model.dart';
+import '../../../core/models/donor_model.dart';
 import '../../../core/utils/helpers.dart';
 
 class DonorCard extends StatelessWidget {
@@ -23,8 +23,8 @@ class DonorCard extends StatelessWidget {
                   backgroundColor: Colors.red.shade100,
                   radius: 30,
                   child: Text(
-                    donor.name[0].toUpperCase(),
-                    style: const TextStyle(fontSize: 24, color: Colors.red),
+                    donor.name.isNotEmpty ? donor.name[0].toUpperCase() : '?',
+                    style: const TextStyle(fontSize: 24, color: Colors.red, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 16),

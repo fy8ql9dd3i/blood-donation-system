@@ -18,6 +18,7 @@ import ViewAvailability from '../pages/hospital/ViewAvailability'
 import BloodBankDashboard from '../pages/bloodBank/dashboard/Dashboard'
 import ManageInventory from '../pages/bloodBank/inventory/ManageInventory'
 import VerifyDonor from '../pages/bloodBank/lab/VerifyDonor'
+import RegisterDonor from '../pages/bloodBank/lab/RegisterDonor'
 import Reports from '../pages/bloodBank/reports/Reports'
 import ExportExcel from '../pages/bloodBank/reports/ExportExcel'
 import RegisterColleague from '../pages/bloodBank/RegisterColleague'
@@ -26,6 +27,10 @@ import RegisterColleague from '../pages/bloodBank/RegisterColleague'
 import AdminDashboard from '../pages/admin/Dashboard'
 import ManageUsers from '../pages/admin/ManageUsers'
 import Settings from '../pages/admin/Settings'
+import EmergencyAlerts from '../pages/shared/EmergencyAlerts'
+import PostNews from '../pages/admin/PostNews'
+import BroadcastAll from '../pages/admin/BroadcastAll'
+import BloodBankInfo from '../pages/shared/BloodBankInfo'
 
 const linkClass = ({ isActive }) =>
   clsx(
@@ -102,6 +107,8 @@ function HospitalLayout() {
         { to: '/hospital/request-blood', label: 'Request blood' },
         { to: '/hospital/track', label: 'Track' },
         { to: '/hospital/availability', label: 'Availability' },
+        { to: '/hospital/info', label: '🏥 Blood Bank Info' },
+        { to: '/hospital/emergency', label: '🚨 Emergency Alert' },
       ]}
     />
   )
@@ -114,9 +121,12 @@ function BloodBankLayout() {
       links={[
         { to: '/blood-bank/dashboard', label: 'Dashboard', end: true },
         { to: '/blood-bank/inventory', label: 'Inventory' },
-        { to: '/blood-bank/lab/verify', label: 'Lab verify' },
+        { to: '/blood-bank/lab/verify', label: 'Lab Verify' },
         { to: '/blood-bank/reports', label: 'Reports' },
         { to: '/blood-bank/reports/export', label: 'Export' },
+        { to: '/blood-bank/emergency', label: '🚨 Emergency Alert' },
+        { to: '/blood-bank/broadcast', label: '🔔 Broadcast All' },
+        { to: '/blood-bank/info', label: '🏥 Center Info' },
       ]}
     />
   )
@@ -132,6 +142,10 @@ function AdminLayout() {
         { to: '/admin/invite-blood-bank', label: 'Register bank staff' },
         { to: '/admin/users', label: 'Users' },
         { to: '/admin/settings', label: 'Settings' },
+        { to: '/admin/emergency', label: '🚨 Emergency Alert' },
+        { to: '/admin/news', label: '📢 Post News' },
+        { to: '/admin/broadcast', label: '🔔 Broadcast All' },
+        { to: '/admin/info', label: '🏥 Center Info' },
       ]}
     />
   )
@@ -165,6 +179,8 @@ export default function AppRoutes() {
           <Route path="request-blood" element={<RequestBlood />} />
           <Route path="track" element={<TrackRequest />} />
           <Route path="availability" element={<ViewAvailability />} />
+          <Route path="info" element={<BloodBankInfo />} />
+          <Route path="emergency" element={<EmergencyAlerts />} />
         </Route>
       </Route>
 
@@ -177,6 +193,9 @@ export default function AppRoutes() {
           <Route path="lab/verify" element={<VerifyDonor />} />
           <Route path="reports" element={<Reports />} />
           <Route path="reports/export" element={<ExportExcel />} />
+          <Route path="info" element={<BloodBankInfo />} />
+          <Route path="emergency" element={<EmergencyAlerts />} />
+          <Route path="broadcast" element={<BroadcastAll />} />
         </Route>
       </Route>
 
@@ -187,6 +206,10 @@ export default function AppRoutes() {
           <Route path="invite-blood-bank" element={<RegisterColleague />} />
           <Route path="users" element={<ManageUsers />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="emergency" element={<EmergencyAlerts />} />
+          <Route path="news" element={<PostNews />} />
+          <Route path="broadcast" element={<BroadcastAll />} />
+          <Route path="info" element={<BloodBankInfo />} />
         </Route>
       </Route>
 

@@ -3,9 +3,9 @@ import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../core/network/api_client.dart';
-import '../../core/constants/api_constants.dart';
-import '../../core/constants/app_constants.dart';
+import '../../../core/network/api_client.dart';
+import '../../../core/constants/api_constants.dart';
+import '../../../core/constants/app_constants.dart';
 
 class DonorService {
   final ApiClient _apiClient;
@@ -49,9 +49,10 @@ class DonorService {
   // ------------------------
   // GET HISTORY (Dio)
   // ------------------------
-  Future<List<dynamic>> getHistory() async {
+  Future<List<dynamic>> getHistory([String? phone]) async {
     try {
-      final response = await _apiClient.get(ApiConstants.history);
+      final queryParams = phone != null && phone.isNotEmpty ? {'phone': phone} : null;
+      final response = await _apiClient.get(ApiConstants.history, queryParameters: queryParams);
       return response.data['data'] ?? response.data;
     } on DioException catch (error) {
       throw _handleError(error);

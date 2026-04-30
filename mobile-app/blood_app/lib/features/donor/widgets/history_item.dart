@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/donation_model.dart';
+import '../../../core/models/donation_model.dart';
 import '../../../core/utils/helpers.dart';
 
 class HistoryItem extends StatelessWidget {

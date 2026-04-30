@@ -1,5 +1,5 @@
-import '../models/notification_model.dart';
-import '../services/notification_service.dart';
+import '../../../core/models/notification_model.dart';
+import 'notification_service.dart';
 
 class NotificationRepository {
   final NotificationService _notificationService;

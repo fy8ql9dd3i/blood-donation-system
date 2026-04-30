@@ -31,3 +31,11 @@ export async function getDonorLocationsForMap() {
   const { data } = await api.get('/map/donor-locations')
   return data
 }
+export async function listPublicHospitals() {
+  const { data } = await api.get('/hospitals/public-list')
+  return data
+}
+export async function getMyDispatches() {
+  const { data } = await api.get('/requests/hospital/dispatches')
+  return data
+}

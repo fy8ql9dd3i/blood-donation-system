@@ -61,6 +61,7 @@ export default function RequestBlood() {
             bloodType: 'O+',
             unitsRequired: 1,
             urgencyLevel: 'medium',
+            requestMessage: '',
           }}
           validationSchema={schema}
           onSubmit={(values, { resetForm }) => {
@@ -70,6 +71,7 @@ export default function RequestBlood() {
                 bloodType: values.bloodType,
                 unitsRequired: Number(values.unitsRequired),
                 urgencyLevel: values.urgencyLevel,
+                requestMessage: values.requestMessage,
               },
               {
                 onSuccess: () => resetForm(),
@@ -137,6 +139,16 @@ export default function RequestBlood() {
                   ))}
                 </Field>
               </div>
+
+              <Field name="requestMessage">
+                {({ field }) => (
+                  <Input
+                    {...field}
+                    label="Message to Blood Bank (Optional)"
+                    placeholder="e.g. Please send type O+ blood"
+                  />
+                )}
+              </Field>
 
               <Button type="submit" disabled={isSubmitting || mutation.isPending}>
                 {mutation.isPending ? 'Submitting…' : 'Submit request'}

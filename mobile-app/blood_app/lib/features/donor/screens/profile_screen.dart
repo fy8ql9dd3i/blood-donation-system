@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../../../data/repositories/donor_repository.dart';
-import '../../../data/models/donor_model.dart';
-import '../../../widgets/custom_button.dart';
-import '../../../widgets/custom_input.dart';
-import '../../../widgets/loading_widget.dart';
+import '../data/donor_repository.dart';
+import '../../../core/models/donor_model.dart';
+import '../../../shared/widgets/custom_button.dart';
+import '../../../shared/widgets/custom_input.dart';
+import '../../../shared/widgets/loading_widget.dart';
 import '../../../core/utils/validators.dart';
 
 class ProfileScreen extends StatefulWidget {

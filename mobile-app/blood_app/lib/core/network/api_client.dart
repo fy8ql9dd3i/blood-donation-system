@@ -11,8 +11,8 @@ class ApiClient {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
-        connectTimeout: const Duration(seconds: 60),
-        receiveTimeout: const Duration(seconds: 60),
+        connectTimeout: const Duration(seconds: 120),
+        receiveTimeout: const Duration(seconds: 120),
         headers: {'Content-Type': 'application/json'},
       ),
     );
@@ -44,8 +44,8 @@ class ApiClient {
     return await _dio.post(path, data: data);
   }
 
-  Future<Response> get(String path) async {
-    return await _dio.get(path);
+  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) async {
+    return await _dio.get(path, queryParameters: queryParameters);
   }
 
   Future<Response> put(String path, {dynamic data}) async {

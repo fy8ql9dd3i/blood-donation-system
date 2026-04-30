@@ -4,12 +4,12 @@ import 'package:provider/provider.dart';
 
 import '../core/network/api_client.dart';
 import 'theme.dart';
-import '../data/repositories/auth_repository.dart'; // <-- add this line// <-- add
-import '../data/repositories/donor_repository.dart';
-import '../data/repositories/notification_repository.dart';
-import '../data/services/auth_service.dart';
-import '../data/services/donor_service.dart';
-import '../data/services/notification_service.dart';
+import '../features/auth/data/auth_repository.dart';
+import '../features/auth/data/auth_service.dart';
+import '../features/donor/data/donor_repository.dart';
+import '../features/donor/data/donor_service.dart';
+import '../features/donor/data/notification_repository.dart';
+import '../features/donor/data/notification_service.dart';
 import 'routes.dart';
 
 class App extends StatelessWidget {
@@ -49,7 +49,7 @@ class App extends StatelessWidget {
         localizationsDelegates: context.localizationDelegates,
         supportedLocales: context.supportedLocales,
         locale: context.locale,
-        initialRoute: Routes.language,
+        initialRoute: Routes.welcome,
         onGenerateRoute: Routes.generateRoute,
       ),
     );

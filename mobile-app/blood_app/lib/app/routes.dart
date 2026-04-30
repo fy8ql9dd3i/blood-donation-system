@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
 import '../features/auth/screens/register_screen.dart';
+import '../features/auth/screens/welcome_screen.dart';
 import '../features/donor/screens/dashboard_screen.dart';
 import '../features/donor/screens/history_screen.dart';
 import '../features/donor/screens/map_screen.dart';
 import '../features/donor/screens/notification_screen.dart';
 import '../features/donor/screens/profile_screen.dart';
+import '../features/donor/screens/news_screen.dart';
 import '../features/settings/language_screen.dart';
 
 class Routes {
+  static const String welcome = '/';
   static const String register = '/register';
   static const String dashboard = '/dashboard';
   static const String profile = '/profile';
   static const String history = '/history';
   static const String map = '/map';
   static const String notifications = '/notifications';
+  static const String news = '/news';
   static const String language = '/language';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
+      case welcome:
+        return MaterialPageRoute(builder: (_) => const WelcomeScreen());
       case register:
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case dashboard:
@@ -30,6 +36,8 @@ class Routes {
         return MaterialPageRoute(builder: (_) => const MapScreen());
       case notifications:
         return MaterialPageRoute(builder: (_) => const NotificationScreen());
+      case news:
+        return MaterialPageRoute(builder: (_) => const NewsScreen());
       case language:
         return MaterialPageRoute(builder: (_) => const LanguageScreen());
       default:

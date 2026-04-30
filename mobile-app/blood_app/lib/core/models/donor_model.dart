@@ -31,21 +31,25 @@ class DonorModel {
 
   factory DonorModel.fromJson(Map<String, dynamic> json) {
     return DonorModel(
-      donorID: json['donorID'],
-      userId: json['userId'],
-      name: json['name'],
-      age: json['age'],
+      donorID: json['donorID'] ?? json['id'] ?? 0,
+      userId: json['userId'] ?? 0,
+      name: json['name'] ?? '',
+      age: json['age'] ?? 0,
       bloodType: json['bloodType'],
-      phoneNumber: json['phoneNumber'],
+      phoneNumber: json['phoneNumber'] ?? json['phone'] ?? json['phonenumber'],
       lastDonationDate: json['lastDonationDate'] != null
-          ? DateTime.parse(json['lastDonationDate'])
+          ? DateTime.tryParse(json['lastDonationDate'].toString())
           : null,
-      eligibilityStatus: json['eligibilityStatus'],
-      registrationDate: DateTime.parse(json['registrationDate']),
+      eligibilityStatus: json['eligibilityStatus'] ?? false,
+      registrationDate: (json['registrationDate'] != null)
+          ? DateTime.parse(json['registrationDate'].toString())
+          : (json['createdAt'] != null)
+              ? DateTime.parse(json['createdAt'].toString())
+              : DateTime.now(),
       address: json['address'],
       latitude: json['latitude']?.toDouble(),
       longitude: json['longitude']?.toDouble(),
-      language: json['language'],
+      language: json['language'] ?? 'en',
     );
   }
 

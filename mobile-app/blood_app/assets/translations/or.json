@@ -42,5 +42,12 @@
     "password_required": "Jecha iccitii barbaachisa",
     "donor_registration": "Galmaa’ina Dhaaltuu",
     "dashboard": "Daashbordii",
-    "retry": "Ira-deebi’i yaali"
+    "retry": "Ira-deebi’i yaali",
+    "hello": "Akkam",
+    "gratitude_message": "Goota ta'uu keessaniif galatoomaa!",
+    "services": "Tajaajila Keenya",
+    "select_language": "Afaan filadhu",
+    "network_error": "Rakkina networkii. Maaloo deebisaa yaalaa.",
+    "server_error": "Rakkina serverii. Maaloo booda deebisaa yaalaa.",
+    "no_data": "Ragaan hin jiru"
 }

@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import { Card } from '../../components/ui/Card'
+import { useState } from 'react'
 
 const schema = Yup.object({
   email: Yup.string().required('Email or Username is required'),
@@ -18,6 +19,32 @@ const schema = Yup.object({
 
 export default function Login() {
   const { login } = useAuth()
+  const [isForgotMode, setIsForgotMode] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [isSending, setIsSending] = useState(false)
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault()
+    if (!resetEmail) {
+      return toast.error("Please enter your email first")
+    }
+    setIsSending(true)
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail })
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message || "Failed to send reset email")
+      toast.success(data.message || "Authentication reset link has been sent!")
+      setIsForgotMode(false)
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setIsSending(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-brand-50 via-white to-slate-100 px-4 py-12">
@@ -33,10 +60,39 @@ export default function Login() {
       </div>
 
       <Card className="w-full max-w-md">
-        <h2 className="mb-6 text-center text-lg font-semibold text-slate-800">
-          Sign in
-        </h2>
-        <Formik
+        {isForgotMode ? (
+          <div>
+            <h2 className="mb-6 text-center text-lg font-semibold text-slate-800">
+              Reset Password
+            </h2>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <Input
+                type="email"
+                label="Email Address"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="Enter your registered email"
+              />
+              <Button type="submit" className="w-full" disabled={isSending}>
+                {isSending ? 'Sending...' : 'Send Reset Link'}
+              </Button>
+              <div className="text-center mt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsForgotMode(false)}
+                  className="text-sm font-medium text-brand-600 hover:text-brand-500"
+                >
+                  Back to Sign in
+                </button>
+              </div>
+            </form>
+          </div>
+        ) : (
+          <div>
+            <h2 className="mb-6 text-center text-lg font-semibold text-slate-800">
+              Sign in
+            </h2>
+            <Formik
           initialValues={{ email: '', password: '' }}
           validationSchema={schema}
           onSubmit={async (values, { setSubmitting }) => {
@@ -76,6 +132,15 @@ export default function Login() {
                   />
                 )}
               </Field>
+              <div className="flex justify-end mt-1">
+                <button
+                  type="button"
+                  onClick={() => setIsForgotMode(true)}
+                  className="text-sm font-medium text-brand-600 hover:text-brand-500"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <Button
                 type="submit"
                 className="w-full"
@@ -86,6 +151,8 @@ export default function Login() {
             </Form>
           )}
         </Formik>
+        </div>
+        )}
       </Card>
     </div>
   )

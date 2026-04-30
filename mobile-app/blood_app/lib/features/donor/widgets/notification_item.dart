@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../data/models/notification_model.dart';
+import '../../../core/models/notification_model.dart';
 import '../../../core/utils/helpers.dart';
-import '../../../data/services/donor_service.dart';
+import '../data/donor_service.dart';
 
 class NotificationItem extends StatelessWidget {
   final NotificationModel notification;
