@@ -8,7 +8,7 @@ class ApiConstants {
   // static const String baseUrl = 'http://10.0.2.2:5000/api'; 
 
   // 3️⃣ For Physical Mobile Device (must be on same Wi-Fi as your PC):
-  static const String baseUrl = 'http://10.200.106.161:5000/api';
+  static const String baseUrl = 'http://10.19.235.130:5000/api';
 
   // Donor
   static const String registerDonor = '/auth/register-donor';
@@ -25,5 +25,6 @@ class ApiConstants {
 
   // Other
   static const String mapCoordinates = '/map/coordinates';
+  static const String mapReverse = '/map/reverse';
 }
 

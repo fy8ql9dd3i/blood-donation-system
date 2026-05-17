@@ -63,11 +63,6 @@ class WelcomeScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 10),
             
-            // News & Announcements Section
-            const NewsWidget(),
-            
-            const SizedBox(height: 32),
-            
             // App Branding / Hero
             Center(
               child: Column(
@@ -141,6 +136,14 @@ class WelcomeScreen extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 32),
+            
+            // News & Announcements Section
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: const NewsWidget(),
+            ),
+            
             const SizedBox(height: 20),
           ],
         ),

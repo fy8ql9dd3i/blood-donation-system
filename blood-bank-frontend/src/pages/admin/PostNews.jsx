@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import clsx from 'clsx';
+import api from '../../services/api';
 
 const LANG_LABELS = { en: 'English', am: 'Amharic', or: 'Oromoo' };
 const LANG_FLAGS  = { en: '🇬🇧', am: '🇪🇹', or: '🇪🇹' };
@@ -17,10 +17,7 @@ export default function PostNews() {
 
     const fetchNews = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.get('http://localhost:5000/api/news', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.get('/news');
             if (res.data.success) setNewsList(res.data.data);
         } catch (error) {
             console.error('Failed to fetch news', error);
@@ -34,11 +31,7 @@ export default function PostNews() {
         if (!title || !content) return toast.error('Title and message are required');
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.post('http://localhost:5000/api/news',
-                { title, content, imageUrl, language },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const res = await api.post('/news', { title, content, imageUrl, language });
             if (res.data.success) {
                 toast.success('Announcement posted!');
                 setTitle(''); setContent(''); setImageUrl('');
@@ -54,16 +47,32 @@ export default function PostNews() {
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this announcement?')) return;
         try {
-            const token = localStorage.getItem('token');
-            const res = await axios.delete(`http://localhost:5000/api/news/${id}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const res = await api.delete(`/news/${id}`);
             if (res.data.success) {
                 toast.success('Announcement deleted');
                 fetchNews();
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to delete');
+        }
+    };
+
+    const handleUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            toast.info('Uploading image...');
+            const res = await api.post('/news/upload', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            if (res.data.success) {
+                setImageUrl(res.data.imageUrl);
+                toast.success('Image uploaded successfully');
+            }
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to upload image');
         }
     };
 
@@ -84,34 +93,38 @@ export default function PostNews() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {[
                     { 
-                        icon: '🩸', 
-                        label: 'Blood Drive', 
-                        title: 'Mobile Blood Donation Drive', 
-                        content: 'We are hosting a mobile blood donation drive this weekend! Join us at the Central Park entrance from 9:00 AM to 4:00 PM. Every drop counts!' 
+                        icon: '🌊', 
+                        label: 'Lake Tana Drive', 
+                        title: 'Special Blood Drive at Lake Tana', 
+                        content: 'Join us for a special blood donation event at the Lake Tana waterfront this Saturday! Help us save lives while enjoying the view. \n\nበዚህ ቅዳሜ በጣና ሐይቅ ዳርቻ ልዩ የደም ልገሳ መርሃ ግብር አዘጋጅተናል! እየተዝናኑ ህይወት ያድኑ።',
+                        lang: 'am'
+                    },
+                    { 
+                        icon: '🚨', 
+                        label: 'Bahir Dar Emergency', 
+                        title: 'Urgent: O- Negative Needed in Bahir Dar', 
+                        content: 'Our Bahir Dar center is currently low on O-Negative blood. If you are O-Negative, please visit our main center immediately. \n\nበባህር ዳር ማዕከላችን የኦ-ኔጌቲቭ (O-) ደም እጥረት አጋጥሞናል። ደም አይነታችሁ ኦ-ኔጌቲቭ የሆናችሁ እባካችሁ አሁኑኑ ማዕከላችን በመምጣት ይለግሱ።',
+                        lang: 'am'
                     },
                     { 
                         icon: '🏥', 
-                        label: 'Center Update', 
-                        title: 'New Service Hours', 
-                        content: 'Great news! Our main collection center will now stay open until 8:00 PM on weekdays to better accommodate working donors. See you there!' 
+                        label: 'Main Center Update', 
+                        title: 'Bahir Dar Center Extended Hours', 
+                        content: 'The Bahir Dar Main Blood Bank will now remain open until 7:30 PM daily to serve our local heroes. \n\nየባህር ዳር ዋና የደም ባንክ የለጋሾችን ምቾት ለመጠበቅ በየቀኑ እስከ ምሽቱ 1፡30 ክፍት ሆኖ ይቆያል።',
+                        lang: 'am'
                     },
                     { 
-                        icon: '🎉', 
-                        label: 'Holiday Notice', 
-                        title: 'Holiday Schedule', 
-                        content: 'Please note that our centers will be closed on the upcoming public holiday. We encourage you to donate before the weekend to maintain supply.' 
-                    },
-                    { 
-                        icon: '🏆', 
-                        label: 'Hero Story', 
-                        title: 'Thank You to Our Heroes', 
-                        content: 'Last month, our community saved over 200 lives! We want to thank every donor who took the time to visit us. You are true heroes.' 
+                        icon: '🙏', 
+                        label: 'Hero Appreciation', 
+                        title: 'Thank You Bahir Dar Donors!', 
+                        content: 'Last week was incredible! We collected over 150 units in Bahir Dar. You are making a difference! \n\nባለፈው ሳምንት በባህር ዳር ከ150 ዩኒት በላይ ደም ተሰብስቧል። ለለጋሾቻችን ከልብ እናመሰግናለን!',
+                        lang: 'am'
                     },
                 ].map((t, idx) => (
                     <button
                         key={idx}
                         type="button"
-                        onClick={() => { setTitle(t.title); setContent(t.content); toast.info(`${t.label} template applied`); }}
+                        onClick={() => { setTitle(t.title); setContent(t.content); setLanguage(t.lang || 'en'); toast.info(`${t.label} template applied`); }}
                         className="p-4 bg-white border border-slate-200 rounded-2xl text-center hover:border-brand-500 hover:shadow-md transition-all group"
                     >
                         <div className="text-2xl mb-2">{t.icon}</div>
@@ -200,28 +213,7 @@ export default function PostNews() {
                                 type="file"
                                 accept="image/*"
                                 className="hidden"
-                                onChange={async (e) => {
-                                    const file = e.target.files[0];
-                                    if (!file) return;
-                                    const formData = new FormData();
-                                    formData.append('image', file);
-                                    try {
-                                        toast.info('Uploading image...');
-                                        const token = localStorage.getItem('token');
-                                        const res = await axios.post('http://localhost:5000/api/news/upload', formData, {
-                                            headers: { 
-                                                'Authorization': `Bearer ${token}`,
-                                                'Content-Type': 'multipart/form-data'
-                                            }
-                                        });
-                                        if (res.data.success) {
-                                            setImageUrl(res.data.imageUrl);
-                                            toast.success('Image uploaded successfully');
-                                        }
-                                    } catch (err) {
-                                        toast.error(err.response?.data?.message || 'Failed to upload image');
-                                    }
-                                }}
+                                onChange={handleUpload}
                             />
                             {imageUrl && (
                                 <button

@@ -131,85 +131,102 @@ export default function ManageInventory() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20">
-      {/* Dynamic Navigation Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center shadow-lg shadow-slate-200">
-              <span className="text-white font-black text-xl">L</span>
+    <div className="min-h-screen bg-slate-50/50 pb-20 animate-in fade-in duration-700">
+      {/* 🏙️ Regional Command Center Header */}
+      <div className="bg-slate-900 border-b border-slate-800 sticky top-0 z-30 shadow-2xl overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-brand-600/10 rounded-full blur-[120px]" />
+        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row justify-between items-center gap-6 relative z-10">
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 bg-brand-600 rounded-[1.5rem] flex items-center justify-center shadow-2xl shadow-brand-500/20 group hover:rotate-6 transition-transform">
+              <span className="text-white font-black text-2xl tracking-tighter">BD</span>
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight uppercase leading-none">Logistics Center</h1>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Inventory Control & Hospital Dispatch</p>
+              <h1 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">Logistics Center • የሎጂስቲክስ ማእከል</h1>
+              <p className="text-[10px] font-black text-brand-500 uppercase tracking-[0.3em] mt-2">Bahir Dar Regional Command • የአማራ ክልል ማዕከል</p>
             </div>
           </div>
 
-          <div className="flex items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+          <div className="flex items-center bg-white/5 p-2 rounded-[2rem] border border-white/10 backdrop-blur-xl">
             <button
               onClick={() => setActiveTab('inventory')}
               className={clsx(
-                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all",
-                activeTab === 'inventory' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                "px-8 py-3 rounded-[1.5rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all",
+                activeTab === 'inventory' ? "bg-white text-slate-900 shadow-xl" : "text-slate-400 hover:text-white"
               )}
             >
-              Inventory Stock
+              Inventory Ledger • ክምችት
             </button>
             <button
               onClick={() => setActiveTab('dispatch')}
               className={clsx(
-                "px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all relative",
-                activeTab === 'dispatch' ? "bg-brand-600 text-white shadow-lg shadow-brand-200" : "text-slate-500 hover:text-slate-900"
+                "px-8 py-3 rounded-[1.5rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all relative ml-2",
+                activeTab === 'dispatch' ? "bg-brand-600 text-white shadow-xl shadow-brand-500/30" : "text-slate-400 hover:text-white"
               )}
             >
-              Logistics & Dispatch
+              Dispatch Center • ስርጭት
               {requests.filter(r => r.status === 'pending').length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-black text-white ring-2 ring-white">
+                <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-white text-[10px] font-black text-brand-600 shadow-xl border-2 border-brand-600">
                   {requests.filter(r => r.status === 'pending').length}
                 </span>
               )}
             </button>
-
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 mt-8 space-y-8">
-        {/* Real-time Status Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-6 mt-12 space-y-12">
+        {/* 📊 Intelligence Stat Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {[
-            { label: 'Total Volume', value: `${rows.reduce((acc, r) => acc + Number(r.quantity || 0), 0)} Units`, sub: 'Active Inventory', color: 'slate' },
-            { label: 'Pending Dispatch', value: requests.filter(r => r.status === 'pending').length, sub: 'Hospital Orders', color: 'brand' },
-            { label: 'Critical Levels', value: bloodTypes.filter(bt => getStockCount(bt) <= 10).length, sub: 'Below Safety Margin', color: 'red' },
-            { label: 'Medical Expired', value: rows.filter(r => getDaysRemaining(r.expiryDate) <= 0).length, sub: 'Pending Disposal', color: rows.filter(r => getDaysRemaining(r.expiryDate) <= 0).length > 0 ? 'amber' : 'slate' }
+            { label: 'Total Volume • አጠቃላይ መጠን', value: `${rows.reduce((acc, r) => acc + Number(r.quantity || 0), 0)}`, unit: 'Units', sub: 'Regional Capacity', color: 'slate' },
+            { label: 'Active Orders • ትዕዛዞች', value: requests.filter(r => r.status === 'pending').length, unit: 'Orders', sub: 'Hospital Queue', color: 'brand' },
+            { label: 'Critical Types • የአደጋ አይነቶች', value: bloodTypes.filter(bt => getStockCount(bt) <= 10).length, unit: 'Alerts', sub: 'Below Safety Margin', color: 'red' },
+            { label: 'Safety Check • የደህንነት ፍተሻ', value: rows.filter(r => getDaysRemaining(r.expiryDate) <= 0).length, unit: 'Expired', sub: 'Compliance Status', color: rows.filter(r => getDaysRemaining(r.expiryDate) <= 0).length > 0 ? 'amber' : 'emerald' }
           ].map((stat, i) => (
-            <div key={i} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{stat.label}</p>
-              <div className={clsx("text-3xl font-black", stat.color === 'brand' ? 'text-brand-600' : stat.color === 'red' ? 'text-red-600' : stat.color === 'amber' ? 'text-amber-600' : 'text-slate-900')}>
-                {stat.value}
-              </div>
-              <p className="text-[11px] font-bold text-slate-500 mt-1">{stat.sub}</p>
+            <div key={i} className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-xl hover:shadow-2xl transition-all duration-500 relative group overflow-hidden">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 relative z-10">{stat.label}</p>
+               <div className="flex items-baseline gap-2 relative z-10">
+                  <div className={clsx("text-5xl font-black tracking-tighter", 
+                    stat.color === 'brand' ? 'text-brand-600' : 
+                    stat.color === 'red' ? 'text-rose-600' : 
+                    stat.color === 'amber' ? 'text-amber-600' : 
+                    stat.color === 'emerald' ? 'text-emerald-600' : 'text-slate-900'
+                  )}>
+                    {stat.value}
+                  </div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.unit}</span>
+               </div>
+               <p className="text-[11px] font-bold text-slate-500 mt-4 relative z-10 flex items-center gap-2">
+                 <span className={clsx("w-1.5 h-1.5 rounded-full", 
+                    stat.color === 'brand' ? 'bg-brand-500' : 
+                    stat.color === 'red' ? 'bg-rose-500' : 
+                    stat.color === 'emerald' ? 'bg-emerald-500' : 'bg-slate-400'
+                 )} />
+                 {stat.sub}
+               </p>
             </div>
           ))}
         </div>
 
         {activeTab === 'inventory' ? (
-          <div className="space-y-6">
-            <Card className="rounded-3xl border-slate-200 shadow-xl overflow-hidden bg-white">
-              <div className="bg-slate-50 border-b border-slate-200 p-6">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+          <div className="space-y-12">
+            {/* 📥 Registration Console */}
+            <Card className="rounded-[3rem] border-slate-200 shadow-2xl overflow-hidden bg-white">
+              <div className="bg-slate-50/80 border-b border-slate-100 p-10">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
                   <div>
-                    <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">Stock Registration</h2>
-                    <p className="text-xs text-slate-500 font-medium">Manually certify and add new blood units to the system inventory.</p>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase">Stock Certification • የምስክር ወረቀት</h2>
+                    <p className="text-sm text-slate-500 font-medium mt-1">Officially register and certify blood units into the regional logistics database.</p>
                   </div>
-                  <div className="flex gap-2 bg-white p-1 rounded-xl border border-slate-200">
+                  <div className="flex gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
                     {['ALL', ...bloodTypes].map(bt => (
                       <button
                         key={bt}
                         onClick={() => setFilterType(bt)}
                         className={clsx(
-                          "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all",
-                          filterType === bt ? "bg-slate-900 text-white shadow-md" : "text-slate-400 hover:text-slate-900"
+                          "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                          filterType === bt ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-900"
                         )}
                       >
                         {bt}
@@ -218,7 +235,7 @@ export default function ManageInventory() {
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-slate-200">
+                <div className="mt-10 pt-10 border-t border-slate-200">
                   <Formik
                     initialValues={{ bloodType: 'O+', quantity: 1, expiryDate: today, collectionDate: today, donorId: '' }}
                     validationSchema={schema}
@@ -227,31 +244,31 @@ export default function ManageInventory() {
                     }}
                   >
                     {({ submitForm }) => (
-                      <Form className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Trace ID</label>
-                          <Field name="donorId" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 ring-brand-500/20 outline-none font-medium" placeholder="Optional" />
+                      <Form className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 items-end">
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Traceability ID</label>
+                          <Field name="donorId" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-xs focus:border-brand-500 focus:ring-0 outline-none font-bold text-slate-900 transition-all" placeholder="Optional" />
                         </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Group</label>
-                          <Field as="select" name="bloodType" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 ring-brand-500/20 outline-none font-black text-brand-600">
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Blood Group</label>
+                          <Field as="select" name="bloodType" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-xs focus:border-brand-500 focus:ring-0 outline-none font-black text-brand-600 transition-all">
                             {bloodTypes.map(bt => <option key={bt} value={bt}>{bt}</option>)}
                           </Field>
                         </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Units</label>
-                          <Field name="quantity" type="number" min={1} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 ring-brand-500/20 outline-none text-center font-bold" />
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Units (Volume)</label>
+                          <Field name="quantity" type="number" min={1} className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-xs focus:border-brand-500 focus:ring-0 outline-none text-center font-black text-slate-900 transition-all" />
                         </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Collected</label>
-                          <Field name="collectionDate" type="date" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 ring-brand-500/20 outline-none" />
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Collection</label>
+                          <Field name="collectionDate" type="date" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-xs focus:border-brand-500 focus:ring-0 outline-none font-bold text-slate-900 transition-all" />
                         </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Expiry</label>
-                          <Field name="expiryDate" type="date" className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 ring-brand-500/20 outline-none" />
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Expiry Date</label>
+                          <Field name="expiryDate" type="date" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-6 py-4 text-xs focus:border-brand-500 focus:ring-0 outline-none font-bold text-slate-900 transition-all" />
                         </div>
-                        <button type="button" onClick={submitForm} disabled={addStockM.isPending} className="bg-slate-900 text-white rounded-xl py-2.5 text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-200 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50">
-                          Add to Stock
+                        <button type="button" onClick={submitForm} disabled={addStockM.isPending} className="bg-slate-900 text-white rounded-2xl py-4 text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-slate-200 hover:bg-black active:scale-95 transition-all disabled:opacity-50 h-[56px]">
+                          {addStockM.isPending ? '⏳ certifying...' : '✓ Add to Ledger'}
                         </button>
                       </Form>
                     )}
@@ -260,111 +277,117 @@ export default function ManageInventory() {
               </div>
             </Card>
 
-            <div className="bg-white rounded-[40px] border border-slate-200 shadow-2xl overflow-hidden">
-            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <div>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">Global Stock Ledger</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Live tracking of all regional blood reserves</p>
+            {/* 📜 Master Ledger Table */}
+            <div className="bg-white rounded-[3rem] border border-slate-200 shadow-2xl overflow-hidden">
+              <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-slate-900">
+                <div>
+                  <h3 className="text-2xl font-black text-white tracking-tighter uppercase">Master Logistics Ledger • ማስተር ደብተር</h3>
+                  <p className="text-[10px] font-bold text-brand-500 uppercase tracking-[0.3em] mt-1">Live synchronized inventory registry for the Amhara Region</p>
+                </div>
+                <div className="hidden md:flex gap-4">
+                   <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-[10px] font-black text-white uppercase tracking-widest">Oracle Sync Active</span>
+                   </div>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <span className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100">Sync Active</span>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] border-b border-slate-100">
+                      <th className="px-10 py-8 text-center">Specimen #</th>
+                      <th className="px-10 py-8 text-center">Biological Type</th>
+                      <th className="px-10 py-8 text-center">Volume (Units)</th>
+                      <th className="px-10 py-8 text-center">Timeline Control</th>
+                      <th className="px-10 py-8 text-center">Stability Status</th>
+                      <th className="px-10 py-8 text-right">Operational Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {filteredRows.length === 0 ? (
+                      <tr><td colSpan="6" className="p-32 text-center text-slate-300 italic uppercase tracking-[0.4em] text-xs font-black bg-slate-50/50">NO REGISTRY DATA FOUND</td></tr>
+                    ) : (
+                      filteredRows.map((r, i) => {
+                        const qty = Number(r.quantity || 0)
+                        const daysLeft = getDaysRemaining(r.expiryDate)
+                        const isExpired = daysLeft < 0
+                        
+                        return (
+                          <tr key={r.id || i} className="hover:bg-slate-50 transition-all group">
+                            <td className="px-10 py-10">
+                              <div className="flex flex-col items-center">
+                                <span className="font-mono text-sm font-black text-slate-900 group-hover:text-brand-600 transition-colors tracking-tighter">
+                                  {String(r.id || '').slice(0, 10).toUpperCase() || 'SYS-INV-CERT'}
+                                </span>
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Encrypted ID</span>
+                              </div>
+                            </td>
+                            <td className="px-10 py-10">
+                               <div className="w-16 h-16 bg-white border-4 border-slate-100 rounded-[1.5rem] flex items-center justify-center font-black text-2xl text-brand-600 mx-auto shadow-2xl shadow-slate-100 group-hover:rotate-6 transition-transform">
+                                  {r.bloodType}
+                               </div>
+                            </td>
+                            <td className="px-10 py-10 text-center">
+                               <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{qty}</p>
+                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">Certified Units</p>
+                            </td>
+                            <td className="px-10 py-10">
+                               <div className="flex flex-col items-center gap-1.5 px-6 py-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Expiration Control</span>
+                                  <span className="font-mono text-xs font-black text-slate-900 uppercase">
+                                     {new Date(r.expiryDate).toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' })}
+                                  </span>
+                               </div>
+                            </td>
+                            <td className="px-10 py-10">
+                               <div className="flex flex-col items-center gap-3">
+                                  <span className={clsx(
+                                    "px-6 py-2.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl w-full text-center transition-all",
+                                    isExpired 
+                                      ? "bg-rose-600 text-white shadow-rose-200" 
+                                      : daysLeft <= 3
+                                        ? "bg-amber-600 text-white shadow-amber-200 animate-pulse"
+                                        : qty <= 10 
+                                          ? "bg-slate-900 text-white shadow-slate-200" 
+                                          : "bg-emerald-600 text-white shadow-emerald-200"
+                                  )}>
+                                    {isExpired ? '🚨 DISPOSAL REQUIRED' : daysLeft <= 3 ? '⏳ URGENT DISPATCH' : qty <= 10 ? '⚠️ LOW STOCK' : '✅ OPTIMAL'}
+                                  </span>
+                                  {!isExpired && (
+                                    <p className={clsx(
+                                      "text-[10px] font-black uppercase tracking-tighter",
+                                      daysLeft <= 7 ? "text-rose-500 font-black" : "text-slate-400"
+                                    )}>
+                                      {daysLeft} Days to Safe Disposal
+                                    </p>
+                                  )}
+                               </div>
+                            </td>
+                            <td className="px-10 py-10 text-right">
+                               <button className="px-6 py-3 bg-white border-2 border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:border-brand-600 hover:text-brand-600 transition-all hover:shadow-xl shadow-slate-100">
+                                  Manage Record
+                               </button>
+                            </td>
+                          </tr>
+                        )
+                      })
+                    )}
+                  </tbody>
+                </table>
               </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-slate-100">
-                    <th className="px-8 py-5">Traceability ID</th>
-                    <th className="px-8 py-5 text-center">Group</th>
-                    <th className="px-8 py-5 text-center">Quantity</th>
-                    <th className="px-8 py-5 text-center">Expiry</th>
-                    <th className="px-8 py-5 text-center">Viability</th>
-                    <th className="px-8 py-5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {filteredRows.length === 0 ? (
-                    <tr><td colSpan="6" className="p-20 text-center text-slate-300 italic uppercase tracking-widest text-[10px] font-black">No inventory records found in the ledger</td></tr>
-                  ) : (
-                    filteredRows.map((r, i) => {
-                      const qty = Number(r.quantity || 0)
-                      const daysLeft = getDaysRemaining(r.expiryDate)
-                      const isExpired = daysLeft < 0
-                      
-                      return (
-                        <tr key={r.id || i} className="hover:bg-slate-50/80 transition-all group">
-                          <td className="px-8 py-6">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center group-hover:bg-brand-50 transition-colors">
-                                <span className="text-[10px] text-slate-400 group-hover:text-brand-600 font-black">#</span>
-                              </div>
-                              <div>
-                                <p className="font-black text-slate-900 text-sm tracking-tight">{String(r.id || '').slice(0, 8).toUpperCase() || 'TRC-INV'}</p>
-                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Digital Trace ID</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-8 py-6 text-center">
-                            <span className="bg-brand-600 text-white w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm mx-auto shadow-lg shadow-brand-100 group-hover:scale-110 transition-transform">
-                              {r.bloodType}
-                            </span>
-                          </td>
-                          <td className="px-8 py-6 text-center">
-                            <p className="text-xl font-black text-slate-900 tracking-tighter">{qty}</p>
-                            <p className="text-[9px] font-bold text-slate-400 uppercase">Units</p>
-                          </td>
-                          <td className="px-8 py-6 text-center font-mono text-[11px] font-bold text-slate-500 bg-slate-50/30">
-                            {String(r.expiryDate).slice(0, 10)}
-                          </td>
-                          <td className="px-8 py-6 text-center">
-                            <div className="flex flex-col items-center gap-1.5">
-                              <span className={clsx(
-                                "px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 w-full",
-                                isExpired 
-                                  ? "bg-red-600 text-white shadow-lg shadow-red-200" 
-                                  : daysLeft <= 3
-                                    ? "bg-rose-500 text-white shadow-lg shadow-rose-200 animate-bounce"
-                                    : qty <= 10 
-                                      ? "bg-amber-500 text-white shadow-lg shadow-amber-200 animate-pulse" 
-                                      : "bg-emerald-500 text-white shadow-lg shadow-emerald-200"
-                              )}>
-                                {isExpired ? '🚨 Expired' : daysLeft <= 3 ? '⏳ Urgent' : qty <= 10 ? '⚠️ Critical' : '✅ Stable'}
-                              </span>
-                              {!isExpired && (
-                                <p className={clsx(
-                                  "text-[10px] font-black uppercase tracking-tighter",
-                                  daysLeft <= 7 ? "text-red-500" : "text-slate-400"
-                                )}>
-                                  {daysLeft} Days Remaining
-                                </p>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-8 py-6 text-right">
-                            <button className="text-[10px] font-black text-slate-300 hover:text-brand-600 uppercase tracking-widest transition-colors flex items-center justify-end gap-2 ml-auto">
-                              <span>Manage</span>
-                              <span className="text-lg">→</span>
-                            </button>
-                          </td>
-                        </tr>
-                      )
-                    })
-                  )}
-                </tbody>
-              </table>
             </div>
           </div>
-        </div>
         ) : activeTab === 'dispatch' ? (
-          /* Dispatch Console View - Grouped by Hospital */
-          <div className="space-y-8">
-            {/* Manual Dispatch Console Form */}
-            <Card className="rounded-[32px] border-slate-900 border-b-8 shadow-2xl overflow-hidden bg-white">
-              <div className="p-8 bg-slate-900">
-                <h3 className="text-white font-black text-xl uppercase tracking-tight">Manual Dispatch Console</h3>
-                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">Directly issue blood units to a facility</p>
+          /* 🚁 Logistics Console View */
+          <div className="space-y-12 animate-in slide-in-from-bottom-10 duration-700">
+            {/* 🛰️ Manual Dispatch Form */}
+            <Card className="rounded-[3.5rem] border-slate-900 border-b-[16px] shadow-2xl overflow-hidden bg-white">
+              <div className="p-12 bg-slate-900 relative">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-600/20 rounded-full -mr-32 -mt-32 blur-[100px]" />
+                <h3 className="text-3xl font-black text-white tracking-tighter uppercase relative z-10">Manual Dispatch Console • ስርጭት መቆጣጠሪያ</h3>
+                <p className="text-brand-500 text-[11px] font-black uppercase tracking-[0.4em] mt-3 relative z-10">Regional Supply Chain Execution • የአማራ ክልል የአቅርቦት ሰንሰለት</p>
               </div>
-              <div className="p-8">
+              <div className="p-12">
                 <Formik
                   enableReinitialize
                   initialValues={dispatchDefaults}
@@ -378,10 +401,10 @@ export default function ManageInventory() {
                   }}
                 >
                   {({ values, setFieldValue }) => (
-                    <Form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-end">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Hospital</label>
-                        <Field as="select" name="hospitalId" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 ring-brand-500/20 outline-none font-bold">
+                    <Form className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 items-end">
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Destination Facility</label>
+                        <Field as="select" name="hospitalId" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xs focus:border-brand-500 focus:ring-0 outline-none font-black text-slate-900 transition-all">
                           <option value="">Choose Hospital...</option>
                           {pickList(hospitalsQ.data).map(h => {
                             const id = h.hospitalId || h.hospitalID || h.id;
@@ -391,15 +414,15 @@ export default function ManageInventory() {
                           })}
                         </Field>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Blood Group</label>
-                        <Field as="select" name="bloodType" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 ring-brand-500/20 outline-none font-black text-brand-600">
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Biological Specification</label>
+                        <Field as="select" name="bloodType" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xs focus:border-brand-500 focus:ring-0 outline-none font-black text-brand-600 transition-all uppercase">
                           {bloodTypes.map(bt => <option key={bt} value={bt}>{bt}</option>)}
                         </Field>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Select Available Unit (Expiry)</label>
-                        <Field as="select" name="expiryDate" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 ring-brand-500/20 outline-none font-bold">
+                      <div className="space-y-4">
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Certified Batch (Expiry)</label>
+                        <Field as="select" name="expiryDate" className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xs focus:border-brand-500 focus:ring-0 outline-none font-bold text-slate-900 transition-all">
                           <option value="">Select Expiry Date...</option>
                           {rows
                             .filter(r => (r.bloodType === values.bloodType || r.blood_type === values.bloodType) && Number(r.quantity || 0) > 0)
@@ -410,13 +433,13 @@ export default function ManageInventory() {
                             ))}
                         </Field>
                       </div>
-                      <div className="flex gap-4">
-                        <div className="flex-1 space-y-2">
-                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Units</label>
-                          <Field name="units" type="number" min={1} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:ring-2 ring-brand-500/20 outline-none font-black" />
+                      <div className="flex gap-6">
+                        <div className="flex-1 space-y-4">
+                          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-2">Volume</label>
+                          <Field name="units" type="number" min={1} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xs focus:border-brand-500 focus:ring-0 outline-none font-black text-slate-900 text-center transition-all" />
                         </div>
-                        <button type="submit" disabled={manualDispatchM.isPending} className="bg-brand-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-brand-200 hover:bg-brand-700 active:scale-95 transition-all self-end h-[46px]">
-                          Dispatch
+                        <button type="submit" disabled={manualDispatchM.isPending} className="bg-brand-600 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-brand-200 hover:bg-brand-700 active:scale-95 transition-all self-end h-[56px] flex items-center justify-center gap-3">
+                           {manualDispatchM.isPending ? '⏳ processing...' : '🚀 EXECUTE DISPATCH'}
                         </button>
                       </div>
                     </Form>
@@ -425,37 +448,17 @@ export default function ManageInventory() {
               </div>
             </Card>
 
-            {/* Disaster Management Toolbar */}
-            <div className="bg-slate-900 rounded-3xl p-8 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6 border-b-8 border-brand-600">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-brand-600 rounded-2xl flex items-center justify-center animate-pulse shadow-lg shadow-brand-500/20">
-                  <span className="text-white text-3xl">🌐</span>
-                </div>
-                <div>
-                  <h3 className="text-white font-black text-xl uppercase tracking-tight leading-tight">Regional Fulfillment Center</h3>
-                  <p className="text-slate-400 text-xs font-bold mt-1 uppercase tracking-widest">Network Overview & Hospital Dispatch</p>
-                </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 text-center">
-                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Hospitals</p>
-                  <p className="text-xl font-black text-white">{[...new Set(requests.map(r => r.hospitalId))].length}</p>
-                </div>
-                <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 text-center">
-                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Pending Units</p>
-                  <p className="text-xl font-black text-brand-500">{requests.filter(r => r.status === 'pending').reduce((sum, r) => sum + (Number(r.unitsRequired) || 0), 0)}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-8">
+            {/* 🏥 Regional Fulfillment Grid */}
+            <div className="grid grid-cols-1 gap-12">
               {requestsQ.isLoading ? (
-                <div className="bg-white p-20 rounded-3xl border border-slate-200 text-center animate-pulse">
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Polling Regional Network...</p>
+                <div className="bg-white p-32 rounded-[3rem] border border-slate-200 text-center space-y-6">
+                   <div className="w-16 h-16 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto shadow-2xl shadow-brand-100" />
+                   <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">POLLING REGIONAL LOGISTICS NETWORK...</p>
                 </div>
               ) : requests.length === 0 ? (
-                <div className="bg-white p-20 rounded-3xl border border-dashed border-slate-300 text-center">
-                  <p className="text-xs font-black text-slate-300 uppercase tracking-[0.3em]">No Active Hospital Requests</p>
+                <div className="bg-white p-32 rounded-[3rem] border-2 border-dashed border-slate-200 text-center">
+                   <div className="text-7xl mb-8 opacity-10">🕊️</div>
+                   <p className="text-xs font-black text-slate-300 uppercase tracking-[0.4em]">NO ACTIVE HOSPITAL REQUIREMENTS RECORDED</p>
                 </div>
               ) : (
                 Object.entries(
@@ -466,25 +469,26 @@ export default function ManageInventory() {
                     return acc
                   }, {})
                 ).map(([hospitalName, hospitalRequests]) => (
-                  <div key={hospitalName} className="bg-white rounded-[40px] border border-slate-200 shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500">
-                    <div className="bg-slate-50 border-b border-slate-100 p-8 flex justify-between items-center">
+                  <div key={hospitalName} className="bg-white rounded-[3.5rem] border border-slate-200 shadow-2xl overflow-hidden hover:shadow-[0_40px_100px_rgba(0,0,0,0.08)] transition-all duration-700 group">
+                    <div className="bg-slate-900 border-b border-white/5 p-10 flex justify-between items-center group-hover:bg-black transition-colors duration-500">
                       <div>
-                        <h4 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                          <span className="w-3 h-3 rounded-full bg-brand-500 shadow-sm" />
-                          {hospitalName}
-                        </h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                          {hospitalRequests.length} Active Requests · Last activity {new Date(hospitalRequests[0].createdAt).toLocaleTimeString()}
+                        <div className="flex items-center gap-4 mb-2">
+                           <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-xl shadow-brand-500/20">H</div>
+                           <h4 className="text-2xl font-black text-white tracking-tighter uppercase">{hospitalName}</h4>
+                        </div>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-14">
+                           {hospitalRequests.length} Requirements Registered • Regional Priority System
                         </p>
                       </div>
-                      <div className="flex gap-2">
-                         <span className="bg-white px-4 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest">
-                           {hospitalRequests[0].hospital?.phoneNumber || 'No Contact'}
-                         </span>
+                      <div className="flex gap-4">
+                         <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 text-center backdrop-blur-xl">
+                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Network Status</p>
+                            <p className="text-xs font-black text-emerald-500 uppercase mt-1">CONNECTED</p>
+                         </div>
                       </div>
                     </div>
 
-                    <div className="p-8 space-y-6">
+                    <div className="p-10 space-y-8">
                       {hospitalRequests.map((r) => {
                         const stockCount = getStockCount(r.bloodType)
                         const hasStock = stockCount >= r.unitsRequired
@@ -492,52 +496,48 @@ export default function ManageInventory() {
 
                         return (
                           <div key={r._id || r.id} className={clsx(
-                            "group rounded-3xl border transition-all duration-300 overflow-hidden",
-                            isPending ? "border-slate-100 bg-white" : "border-transparent bg-slate-50/50 opacity-60"
+                            "group/item rounded-[2.5rem] border-2 transition-all duration-500 overflow-hidden",
+                            isPending ? "border-slate-50 bg-white shadow-sm hover:shadow-xl hover:border-brand-100" : "border-transparent bg-slate-50/50 opacity-50 grayscale"
                           )}>
-                            <div className="flex flex-col lg:flex-row p-6 items-center gap-8">
-                              {/* Request Info */}
-                              <div className="flex-1 min-w-[200px]">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className={clsx(
-                                    "px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest",
-                                    r.urgencyLevel === 'high' ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-600"
-                                  )}>
-                                    {r.urgencyLevel} Priority
-                                  </span>
+                            <div className="flex flex-col lg:flex-row p-8 items-center gap-12">
+                              {/* Request Metadata */}
+                              <div className="flex-1 min-w-[250px]">
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 mb-4">
+                                   <span className={clsx("w-2 h-2 rounded-full animate-pulse", r.urgencyLevel === 'high' ? 'bg-rose-500' : 'bg-slate-400')} />
+                                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">{r.urgencyLevel} PRIORITY REQUIREMENT</span>
                                 </div>
-                                <h5 className="font-black text-slate-800 uppercase tracking-tight">{r.patientName}</h5>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Blood Request Order</p>
+                                <h5 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none mb-2">{r.patientName}</h5>
+                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">Transaction Trace: #{r.id.toString().slice(-8).toUpperCase()}</p>
                               </div>
 
-                              {/* Stock Match & Impact Preview */}
-                              <div className="flex items-center gap-6 bg-slate-50 px-6 py-4 rounded-2xl border border-slate-100">
+                              {/* Supply Chain Analytics */}
+                              <div className="flex items-center gap-10 bg-slate-50 px-10 py-6 rounded-[2rem] border border-slate-100 shadow-inner group-hover/item:bg-white transition-colors">
                                 <div className="text-center">
-                                  <div className="w-12 h-12 bg-brand-600 rounded-xl text-white flex items-center justify-center font-black text-lg mb-1 shadow-lg shadow-brand-200">{r.bloodType}</div>
-                                  <p className="text-[9px] font-bold text-slate-400 uppercase">Needed</p>
+                                  <div className="w-16 h-16 bg-brand-600 rounded-2xl text-white flex items-center justify-center font-black text-xl mb-2 shadow-2xl shadow-brand-100 group-hover/item:rotate-6 transition-transform">{r.bloodType}</div>
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ordered Type</p>
                                 </div>
-                                <div className="h-10 w-px bg-slate-200" />
-                                <div className="text-center min-w-[80px]">
+                                <div className="h-16 w-px bg-slate-200" />
+                                <div className="text-center min-w-[120px]">
                                   <div className={clsx(
-                                    "text-lg font-black tracking-tighter mb-1",
-                                    hasStock ? "text-emerald-600" : "text-red-600"
+                                    "text-3xl font-black tracking-tighter leading-none mb-2",
+                                    hasStock ? "text-emerald-600" : "text-rose-600"
                                   )}>
                                     {stockCount} 
                                     {hasStock && isPending && (
-                                      <span className="text-slate-300 mx-1">→</span>
+                                      <span className="text-slate-300 mx-2 tracking-normal">→</span>
                                     )}
                                     {hasStock && isPending && (
                                       <span className="text-brand-500">{stockCount - r.unitsRequired}</span>
                                     )}
                                   </div>
-                                  <p className="text-[9px] font-bold text-slate-400 uppercase">
-                                    {hasStock && isPending ? 'Stock Impact' : 'Available'}
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                    {hasStock && isPending ? 'Projection Level' : 'Available Reserve'}
                                   </p>
                                 </div>
                               </div>
 
-                              {/* Action Console */}
-                              <div className="w-full lg:w-auto flex flex-col gap-2">
+                              {/* Command Actions */}
+                              <div className="w-full lg:w-auto flex flex-col gap-3 min-w-[200px]">
                                 {isPending ? (
                                   <>
                                     {hasStock ? (
@@ -551,39 +551,38 @@ export default function ManageInventory() {
                                           })
                                           window.scrollTo({ top: 0, behavior: 'smooth' })
                                         }}
-                                        className="bg-emerald-600 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-2"
+                                        className="bg-emerald-600 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-3"
                                       >
-                                        ✅ Fulfill via Console
+                                        ✓ AUTHORIZE DISPATCH
                                       </button>
                                     ) : (
                                       <button
                                         onClick={() => {
-                                          if (window.confirm(`OFFICIAL ALERT: Notify ${hospitalName} of a shortage for ${r.bloodType}?`)) {
-                                            updateRequestStatusM.mutate({ id: r._id || r.id, status: 'rejected', responseMessage: `Regional Alert: Current stock shortage for ${r.bloodType}.` })
+                                          if (window.confirm(`SECURITY ALERT: Broadcast a shortage alert for ${r.bloodType} to ${hospitalName}?`)) {
+                                            updateRequestStatusM.mutate({ id: r._id || r.id, status: 'rejected', responseMessage: `Logistics Alert: Reserve depletion for type ${r.bloodType}. Fulfillment pending collection.` })
                                           }
                                         }}
-                                        className="bg-red-50 text-red-600 border-2 border-red-100 px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all active:scale-95"
+                                        className="bg-rose-50 text-rose-600 border-2 border-rose-100 px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-rose-600 hover:text-white transition-all active:scale-95 shadow-xl shadow-rose-100"
                                       >
-                                        ⚠️ Send Shortage Alert
+                                        ⚠️ BROADCAST SHORTAGE
                                       </button>
                                     )}
                                   </>
                                 ) : (
-                                  <div className="px-6 py-2 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-black uppercase tracking-widest">
-                                    {r.status}
+                                  <div className="px-10 py-4 rounded-2xl bg-emerald-50 text-emerald-700 border-2 border-emerald-100 text-[11px] font-black uppercase tracking-[0.3em] text-center shadow-inner">
+                                    {r.status.toUpperCase()}
                                   </div>
                                 )}
-                                {/* Delete button — always visible for cleanup */}
                                 <button
                                   onClick={() => {
-                                    if (window.confirm(`Delete this request from ${hospitalName} for ${r.bloodType}? This cannot be undone.`)) {
+                                    if (window.confirm(`Cleanup protocol: Permanently archive this request record?`)) {
                                       deleteRequestM.mutate(r._id || r.id)
                                     }
                                   }}
                                   disabled={deleteRequestM.isPending}
-                                  className="text-[10px] font-black text-slate-300 hover:text-red-500 uppercase tracking-widest transition-colors flex items-center justify-center gap-1 border border-slate-100 hover:border-red-200 hover:bg-red-50 rounded-2xl px-4 py-2"
+                                  className="text-[10px] font-black text-slate-300 hover:text-rose-600 uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 py-2 hover:bg-rose-50 rounded-xl mt-2"
                                 >
-                                  🗑️ Remove
+                                  × Archive Trace Record
                                 </button>
                               </div>
                             </div>
@@ -594,11 +593,9 @@ export default function ManageInventory() {
                   </div>
                 ))
               )}
-
             </div>
           </div>
         ) : null}
-
       </div>
     </div>
   )

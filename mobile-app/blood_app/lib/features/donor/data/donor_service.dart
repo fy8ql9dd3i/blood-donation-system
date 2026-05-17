@@ -141,6 +141,21 @@ class DonorService {
   }
 
   // ------------------------
+  // REVERSE GEOCODE (Dio)
+  // ------------------------
+  Future<String> reverseGeocode(double lat, double lon) async {
+    try {
+      final response = await _apiClient.post(
+        ApiConstants.mapReverse,
+        data: {'latitude': lat, 'longitude': lon},
+      );
+      return response.data['address'] ?? 'Unknown location';
+    } on DioException catch (error) {
+      throw _handleError(error);
+    }
+  }
+
+  // ------------------------
   // ERROR HANDLER
   // ------------------------
   String _handleError(DioException error) {

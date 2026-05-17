@@ -39,3 +39,8 @@ export async function getMyDispatches() {
   const { data } = await api.get('/requests/hospital/dispatches')
   return data
 }
+
+export async function sendThankYouLetter(payload) {
+  const { data } = await api.post('/appreciation/send', payload)
+  return data
+}

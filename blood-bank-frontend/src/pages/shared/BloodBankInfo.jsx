@@ -10,22 +10,22 @@ export default function BloodBankInfo() {
       // In a real app, this might fetch from a 'settings' or 'organization' endpoint
       // For now, we'll provide a high-quality template
       return {
-        name: "Central Blood Center",
-        mission: "To provide a safe and reliable supply of blood and blood products to all patients in need through voluntary donations and state-of-the-art processing.",
-        address: "123 Health Avenue, Medical District, Addis Ababa",
-        phone: "+251 11 234 5678",
-        email: "info@bloodbank.org.et",
+        name: "Bahir Dar District Blood Bank",
+        mission: "በባህር ዳር እና አካባቢው ለሚገኙ ታካሚዎች አስተማማኝ እና ጥራት ያለው ደም በፈቃደኝነት በሚሰጥ ልገሳ እና በዘመናዊ የደም ዝግጅት ሂደት ማቅረብ። / To provide a safe and reliable supply of blood to patients in Bahir Dar and surrounding areas.",
+        address: "Hospital Road, Near Felege Hiwot Hospital, Bahir Dar",
+        phone: "+251 58 220 1234",
+        email: "bahirdar.bloodbank@health.gov.et",
         hours: [
-          { day: "Monday - Friday", time: "8:00 AM - 6:00 PM" },
-          { day: "Saturday", time: "9:00 AM - 4:00 PM" },
-          { day: "Sunday", time: "Emergency Only" }
+          { day: "ሰኞ - አርብ (Mon - Fri)", time: "8:00 AM - 6:30 PM" },
+          { day: "ቅዳሜ (Sat)", time: "9:00 AM - 4:00 PM" },
+          { day: "እሁድ (Sun)", time: "ለአስቸኳይ ብቻ (Emergency Only)" }
         ],
         services: [
-          "Whole Blood Donation",
-          "Platelet Apheresis",
-          "Plasma Collection",
-          "Blood Typing & Screening",
-          "Emergency Blood Supply"
+          "ሙሉ ደም ልገሳ (Whole Blood Donation)",
+          "የፕሌትሌት ልገሳ (Platelet Apheresis)",
+          "የፕላዝማ ክምችት (Plasma Collection)",
+          "የደም አይነት ምርመራ (Blood Typing & Screening)",
+          "የአደጋ ጊዜ ደም አቅርቦት (Emergency Blood Supply)"
         ]
       }
     }

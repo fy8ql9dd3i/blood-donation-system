@@ -1,25 +1,25 @@
 class DonationModel {
-  final int donationId;
+  final int id;
   final int donorId;
-  final DateTime donationDate;
-  final String? location;
-  final int amount; // in ml
+  final DateTime collectionDate;
+  final String bloodType;
+  final int units;
 
   DonationModel({
-    required this.donationId,
+    required this.id,
     required this.donorId,
-    required this.donationDate,
-    this.location,
-    required this.amount,
+    required this.collectionDate,
+    required this.bloodType,
+    required this.units,
   });
 
   factory DonationModel.fromJson(Map<String, dynamic> json) {
     return DonationModel(
-      donationId: json['donationId'] ?? json['donationID'] ?? json['id'],
-      donorId: json['donorId'] ?? json['donorID'],
-      donationDate: DateTime.parse(json['donationDate']),
-      location: json['location'],
-      amount: json['amount'] ?? json['quantity'],
+      id: json['id'] ?? 0,
+      donorId: json['donorId'] ?? 0,
+      collectionDate: DateTime.parse(json['collectionDate'] ?? DateTime.now().toIso8601String()),
+      bloodType: json['bloodType'] ?? 'Unknown',
+      units: json['units'] ?? 0,
     );
   }
 }

@@ -9,86 +9,112 @@ class DonorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1e1e24), Color(0xFF2d3436)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -20,
+            top: -20,
+            child: Icon(
+              Icons.bloodtype,
+              size: 150,
+              color: Colors.white.withOpacity(0.05),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  backgroundColor: Colors.red.shade100,
-                  radius: 30,
-                  child: Text(
-                    donor.name.isNotEmpty ? donor.name[0].toUpperCase() : '?',
-                    style: const TextStyle(fontSize: 24, color: Colors.red, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        donor.name,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'BLOOD DONOR PASS',
+                      style: TextStyle(
+                        color: Colors.white54,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade700,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        donor.bloodType ?? '??',
                         style: const TextStyle(
-                          fontSize: 20,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
                       ),
-                      Text(
-                        'Blood: ${donor.bloodType ?? 'Not set'}',
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
-                    ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  donor.name.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
                   ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'ID: #${donor.donorID.toString().padLeft(6, '0')}',
+                  style: const TextStyle(color: Colors.white38, fontSize: 12),
+                ),
+                const SizedBox(height: 30),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildCompactInfo('LAST DONATION', donor.lastDonationDate != null ? Helpers.formatDate(donor.lastDonationDate!) : 'NEVER'),
+                    _buildCompactInfo('ELIGIBILITY', donor.eligibilityStatus ? 'YES' : 'NO', color: donor.eligibilityStatus ? Colors.greenAccent : Colors.redAccent),
+                    _buildCompactInfo('TOTAL', '${donor.totalDonations} UNITS'),
+                  ],
                 ),
               ],
             ),
-            const Divider(height: 24),
-            _infoRow(Icons.cake, 'Age', donor.age.toString()),
-            const SizedBox(height: 8),
-            _infoRow(Icons.phone, 'Phone', donor.phoneNumber ?? 'Not set'),
-            const SizedBox(height: 8),
-            _infoRow(Icons.location_on, 'Address', donor.address ?? 'Not set'),
-            const SizedBox(height: 8),
-            _infoRow(
-              Icons.calendar_today,
-              'Registered',
-              Helpers.formatDate(donor.registrationDate),
-            ),
-            const SizedBox(height: 8),
-            _infoRow(
-              Icons.health_and_safety,
-              'Eligibility',
-              donor.eligibilityStatus ? 'Eligible' : 'Not eligible',
-              color: donor.eligibilityStatus ? Colors.green : Colors.red,
-            ),
-            if (donor.lastDonationDate != null) ...[
-              const SizedBox(height: 8),
-              _infoRow(
-                Icons.history,
-                'Last Donation',
-                Helpers.formatDate(donor.lastDonationDate!),
-              ),
-            ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _infoRow(IconData icon, String label, String value, {Color? color}) {
-    return Row(
+  Widget _buildCompactInfo(String label, String value, {Color? color}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: Colors.grey.shade600),
-        const SizedBox(width: 8),
-        Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w500)),
-        Expanded(
-          child: Text(value, style: TextStyle(color: color ?? Colors.black87)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(color: color ?? Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
         ),
       ],
     );

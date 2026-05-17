@@ -93,8 +93,20 @@ export default function VerifyDonor() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <Button 
+            onClick={() => {
+              const token = localStorage.getItem('token');
+              const base = api.defaults.baseURL.startsWith('http') 
+                ? api.defaults.baseURL 
+                : window.location.origin + api.defaults.baseURL;
+              window.open(`${base}/reports/lab-generate?token=${token}`, '_blank');
+            }} 
+            className="bg-emerald-600 text-white px-4 py-2 rounded text-xs uppercase font-bold hover:bg-emerald-700 transition-colors shadow-lg"
+          >
+            Generate Lab Report
+          </Button>
           <Button onClick={() => navigate('/blood-bank/inventory')} className="bg-slate-700 text-white px-4 py-2 rounded text-xs uppercase font-bold">
-            Generate Inventory Report
+            Inventory Report
           </Button>
         </div>
       </div>
@@ -145,10 +157,13 @@ export default function VerifyDonor() {
               <th className="border border-slate-300 px-3 py-3 text-left font-black uppercase">Name & Phone</th>
               <th className="border border-slate-300 px-1 py-3 text-center font-black uppercase w-12">Age</th>
               <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-16">Group</th>
-              <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-24">HIV Test</th>
-              <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-24">HBV Test</th>
-              <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-20">Weight(kg)</th>
+              <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-24">HIV/HBV</th>
+              <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-16">Weight</th>
+              <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-16">Hb</th>
+              <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-24">BP/Pulse</th>
+              <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-16">Temp</th>
               <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-24">Last Don.</th>
+              <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-32">Coll / Exp Date</th>
               <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-24">Status</th>
               <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-32">Action</th>
             </tr>
@@ -176,10 +191,13 @@ export default function VerifyDonor() {
                       hiv: 'Non-Reactive',
                       hbv: 'Non-Reactive',
                       weight: 60,
+                      hemoglobin: 13.5,
                       bp: '120/80',
                       pulse: 72,
+                      bodyTemperature: 36.6,
                       donation_amount: 450,
                       collection_date: today,
+                      expiry_date: new Date(new Date().getTime() + 42 * 24 * 3600 * 1000).toISOString().slice(0, 10),
                     }}
                     onSubmit={(values) => mutation.mutate(values)}
                   >
@@ -200,19 +218,31 @@ export default function VerifyDonor() {
                           </Field>
                         </td>
                         <td className="border border-slate-300 p-1 text-center">
-                          <Field as="select" name="hiv" className={clsx("w-full border rounded px-1 py-1.5 font-bold text-[11px]", values.hiv === 'Positive' ? 'bg-red-100 text-red-700 border-red-300' : 'bg-green-50 text-green-700 border-green-200')}>
-                            <option value="Non-Reactive">Non-Reactive</option>
-                            <option value="Positive">Positive / Reactive</option>
-                          </Field>
+                          <div className="flex flex-col gap-1">
+                            <Field as="select" name="hiv" className={clsx("w-full border rounded px-1 py-1 font-bold text-[10px]", values.hiv === 'Positive' ? 'bg-red-100 text-red-700' : 'bg-green-50 text-green-700')}>
+                              <option value="Non-Reactive">HIV-</option>
+                              <option value="Positive">HIV+</option>
+                            </Field>
+                            <Field as="select" name="hbv" className={clsx("w-full border rounded px-1 py-1 font-bold text-[10px]", values.hbv === 'Positive' ? 'bg-red-100 text-red-700' : 'bg-green-50 text-green-700')}>
+                              <option value="Non-Reactive">HBV-</option>
+                              <option value="Positive">HBV+</option>
+                            </Field>
+                          </div>
                         </td>
                         <td className="border border-slate-300 p-1 text-center">
-                          <Field as="select" name="hbv" className={clsx("w-full border rounded px-1 py-1.5 font-bold text-[11px]", values.hbv === 'Positive' ? 'bg-red-100 text-red-700 border-red-300' : 'bg-green-50 text-green-700 border-green-200')}>
-                            <option value="Non-Reactive">Non-Reactive</option>
-                            <option value="Positive">Positive / Reactive</option>
-                          </Field>
+                          <Field name="weight" type="number" className="w-12 bg-slate-50 border border-slate-200 rounded text-center text-[11px]" />
                         </td>
                         <td className="border border-slate-300 p-1 text-center">
-                          <Field name="weight" type="number" className="w-16 bg-slate-100 border border-slate-200 rounded px-1 py-1.5 text-center font-bold text-[12px]" />
+                          <Field name="hemoglobin" type="number" step="0.1" className="w-12 bg-slate-50 border border-slate-200 rounded text-center text-[11px]" />
+                        </td>
+                        <td className="border border-slate-300 p-1 text-center">
+                          <div className="flex flex-col gap-1">
+                            <Field name="bp" className="w-16 bg-slate-50 border border-slate-200 rounded text-center text-[10px]" placeholder="BP" />
+                            <Field name="pulse" type="number" className="w-16 bg-slate-50 border border-slate-200 rounded text-center text-[10px]" placeholder="Pulse" />
+                          </div>
+                        </td>
+                        <td className="border border-slate-300 p-1 text-center">
+                          <Field name="bodyTemperature" type="number" step="0.1" className="w-12 bg-slate-50 border border-slate-200 rounded text-center text-[11px]" />
                         </td>
                         <td className="border border-slate-300 p-2 text-center">
                           <div className="flex flex-col items-center">
@@ -226,6 +256,18 @@ export default function VerifyDonor() {
                             )}
                           </div>
                         </td>
+                        <td className="border border-slate-300 p-1 text-center">
+                            <div className="flex flex-col gap-1">
+                               <div className="flex items-center gap-1">
+                                  <span className="text-[8px] font-bold text-slate-400 w-8">COLL:</span>
+                                  <Field name="collection_date" type="date" className="bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] w-full" />
+                               </div>
+                               <div className="flex items-center gap-1">
+                                  <span className="text-[8px] font-bold text-slate-400 w-8">EXP:</span>
+                                  <Field name="expiry_date" type="date" className="bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] w-full" />
+                               </div>
+                            </div>
+                        </td>
                         <td className="border border-slate-300 p-2 text-center uppercase tracking-wider font-black text-[10px]">
                           {d.status === 'rejected' ? <span className="text-red-600">Rejected</span> :
                             d.status === 'approved' ? <span className="text-green-600">Approved</span> :
@@ -235,7 +277,7 @@ export default function VerifyDonor() {
                           {d.status === 'rejected' ? (
                             <button 
                                type="button" 
-                               onClick={() => { if(window.confirm('Permanent Remove Rejected Donor?')) deleteM.mutate(d.donorID || d._id || d.id) }}
+                               onClick={() => { if(window.confirm('Permanent Remove Rejected Donor?')) deleteM.mutate(d.donorID) }}
                                className="bg-red-500 text-white px-2 py-1.5 rounded font-black uppercase text-[10px] hover:bg-red-700 w-full transition-colors shadow-sm"
                             >
                                Purge Rejected
@@ -258,7 +300,7 @@ export default function VerifyDonor() {
                                 {!isEligible && (
                                    <button 
                                       type="button"
-                                      onClick={() => { if(window.confirm('The donor is ineligible. Do you want to remove them from the list?')) deleteM.mutate(d.donorID || d._id || d.id) }} 
+                                      onClick={() => { if(window.confirm('The donor is ineligible. Do you want to remove them from the list?')) deleteM.mutate(d.donorID) }} 
                                       className="text-[9px] font-bold text-red-400 hover:text-red-700 underline uppercase tracking-tighter"
                                    >
                                       Remove Ineligible

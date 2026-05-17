@@ -20,6 +20,7 @@ dependencies:
   latlong2: ^0.9.1
   url_launcher: ^6.3.2
   share_plus: ^13.1.0
+  geolocator: ^14.0.1
 
 dev_dependencies:
   flutter_test:

@@ -19,7 +19,8 @@ function resolveBaseURL() {
   if (import.meta.env.DEV) {
     return '/api'
   }
-  return 'http://127.0.0.1:5000/api'
+  // Dynamic host detection for local network access
+  return `http://${window.location.hostname}:5000/api`
 }
 
 const baseURL = resolveBaseURL()

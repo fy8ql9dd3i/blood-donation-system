@@ -1,7 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:wght@100..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Bahir Dar Blood Bank Official Brand Palette */
+  --brand-primary: #D31027; /* Deep Life-Saving Red */
+  --brand-secondary: #004E92; /* Lake Tana Blue */
+  --brand-accent: #FFD700; /* Ethiopian Gold */
+  --brand-surface: #F8FAFC;
+  --brand-dark: #0F172A;
+}
+
 body {
-  @apply min-h-screen bg-slate-50 text-slate-900 antialiased;
+  @apply min-h-screen bg-white text-slate-900 antialiased;
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.03em;
+}
+
+/* Premium UI Utilities */
+.formal-border {
+  border-width: 1.5px;
+  @apply border-slate-200/60;
+}
+
+.glass-header {
+  @apply sticky top-0 z-50 bg-white/70 backdrop-blur-2xl border-b border-slate-200/50;
+}
+
+.brand-gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-[#D31027] to-[#EA384D];
+}
+
+.premium-shadow {
+  shadow: 0 25px 50px -12px rgba(211, 16, 39, 0.15);
+}
+
+/* Typography Scales */
+.text-hero {
+  @apply text-5xl md:text-8xl font-black tracking-tighter leading-[0.85];
+}
+
+.text-section-title {
+  @apply text-3xl md:text-5xl font-black tracking-tight text-slate-900;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-slate-50;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 border-4 border-slate-50 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-brand-600;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float 6s ease-in-out infinite;
 }

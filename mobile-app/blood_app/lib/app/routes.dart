@@ -7,7 +7,10 @@ import '../features/donor/screens/map_screen.dart';
 import '../features/donor/screens/notification_screen.dart';
 import '../features/donor/screens/profile_screen.dart';
 import '../features/donor/screens/news_screen.dart';
+import '../features/donor/screens/appreciation_screen.dart';
 import '../features/settings/language_screen.dart';
+
+import '../features/donor/screens/main_screen.dart';
 
 class Routes {
   static const String welcome = '/';
@@ -18,6 +21,7 @@ class Routes {
   static const String map = '/map';
   static const String notifications = '/notifications';
   static const String news = '/news';
+  static const String appreciation = '/appreciation';
   static const String language = '/language';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
@@ -27,7 +31,7 @@ class Routes {
       case register:
         return MaterialPageRoute(builder: (_) => const RegisterScreen());
       case dashboard:
-        return MaterialPageRoute(builder: (_) => const DashboardScreen());
+        return MaterialPageRoute(builder: (_) => const MainScreen());
       case profile:
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
       case history:
@@ -38,6 +42,8 @@ class Routes {
         return MaterialPageRoute(builder: (_) => const NotificationScreen());
       case news:
         return MaterialPageRoute(builder: (_) => const NewsScreen());
+      case appreciation:
+        return MaterialPageRoute(builder: (_) => const AppreciationScreen());
       case language:
         return MaterialPageRoute(builder: (_) => const LanguageScreen());
       default:

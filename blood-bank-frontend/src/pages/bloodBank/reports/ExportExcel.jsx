@@ -83,6 +83,26 @@ export default function ExportExcel() {
         </button>
       </div>
 
+      {/* Donor Statistics Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white border border-slate-200 p-4 rounded-lg shadow-sm flex flex-col justify-center">
+          <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Total Donors</p>
+          <p className="text-2xl font-black text-slate-800">{donors.length}</p>
+        </div>
+        <div className="bg-white border border-slate-200 p-4 rounded-lg shadow-sm flex flex-col justify-center border-l-4 border-l-blue-500">
+          <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">New This Month</p>
+          <p className="text-2xl font-black text-blue-600">
+            {donors.filter(d => d.createdAt && new Date(d.createdAt).getMonth() === new Date().getMonth() && new Date(d.createdAt).getFullYear() === new Date().getFullYear()).length}
+          </p>
+        </div>
+        <div className="bg-white border border-slate-200 p-4 rounded-lg shadow-sm flex flex-col justify-center border-l-4 border-l-indigo-500">
+          <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">New This Year</p>
+          <p className="text-2xl font-black text-indigo-600">
+            {donors.filter(d => d.createdAt && new Date(d.createdAt).getFullYear() === new Date().getFullYear()).length}
+          </p>
+        </div>
+      </div>
+
       {/* Preview table */}
       <div className="overflow-x-auto border border-slate-300 rounded-lg shadow-sm">
         <table className="w-full text-[12px] border-collapse bg-white">

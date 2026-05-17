@@ -30,4 +30,8 @@ class DonorRepository {
     }
     return false;
   }
+
+  Future<String> reverseGeocode(double lat, double lon) async {
+    return await _donorService.reverseGeocode(lat, lon);
+  }
 }
