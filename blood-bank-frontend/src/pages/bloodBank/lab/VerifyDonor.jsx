@@ -57,9 +57,14 @@ export default function VerifyDonor() {
 
   const regMutation = useMutation({
     mutationFn: (payload) => donorService.register(payload),
-    onSuccess: () => {
+    onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['donors'] })
-      toast.success('New Walk-In Donor Registered Successfully!')
+      const isExisting = res?.alreadyExists || res?.message?.toLowerCase().includes('already exists')
+      if (isExisting) {
+        toast.info('Donor is already registered! Loaded existing profile from database.')
+      } else {
+        toast.success('New Walk-In Donor Registered Successfully!')
+      }
     },
     onError: (err) => {
       toast.error('Registration failed: ' + (err.response?.data?.message || err.message))
@@ -123,15 +128,42 @@ export default function VerifyDonor() {
               regMutation.mutate({ ...values, registeredBy: 'lab' }, { onSuccess: () => resetForm() })
             }}
           >
-            {({ submitForm }) => (
+            {({ submitForm, setFieldValue, values }) => (
               <Form className="flex flex-wrap items-end gap-3 w-full">
+                <div className="flex-1 min-w-[210px]">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Phone Number</label>
+                  <div className="flex gap-1">
+                    <Field name="phone" className="w-full text-xs p-1.5 border border-slate-300 bg-white rounded shadow-sm focus:outline-none" placeholder="09..." />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const trimmedPhone = values.phone?.trim();
+                        if (!trimmedPhone) {
+                          toast.warning('Please enter a phone number to check');
+                          return;
+                        }
+                        try {
+                          const { data } = await api.get(`/donors/phone/${trimmedPhone}`);
+                          if (data) {
+                            setFieldValue('name', data.name || '');
+                            setFieldValue('age', data.age || '');
+                            setFieldValue('address', data.address || '');
+                            setSearchTerm(trimmedPhone); // Automatically filter table below to show their record!
+                            toast.info(`Donor found! Previously donated ${data.totalDonations || 0} times. Details autofilled!`);
+                          }
+                        } catch (err) {
+                          toast.success('New phone number! Fill out details to register a new donor.');
+                        }
+                      }}
+                      className="bg-slate-300 hover:bg-slate-400 text-slate-700 text-[10px] font-black uppercase px-2 py-1.5 rounded shadow-sm transition-all"
+                    >
+                      Check
+                    </button>
+                  </div>
+                </div>
                 <div className="flex-[2] min-w-[150px]">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Walk-In Name</label>
                   <Field name="name" className="w-full text-xs p-1.5 border border-slate-300 bg-white rounded shadow-sm focus:outline-none" placeholder="Full Name" />
-                </div>
-                <div className="flex-1 min-w-[110px]">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Phone</label>
-                  <Field name="phone" className="w-full text-xs p-1.5 border border-slate-300 bg-white rounded shadow-sm focus:outline-none" placeholder="09..." />
                 </div>
                 <div className="w-16">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Age</label>

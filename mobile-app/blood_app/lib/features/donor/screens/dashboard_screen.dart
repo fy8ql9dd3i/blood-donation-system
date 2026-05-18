@@ -3,12 +3,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 import '../data/donor_repository.dart';
-import '../data/news_service.dart';
 import '../data/notification_repository.dart';
 import '../../../core/models/donor_model.dart';
 import '../../../core/models/notification_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
 import '../widgets/donor_card.dart';
+import '../../../app/theme.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -19,9 +19,7 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   late Future<DonorModel> _profileFuture;
-  late Future<List<dynamic>> _newsFuture;
   late Future<List<NotificationModel>> _notifFuture;
-  final NewsService _newsService = NewsService();
 
   @override
   void initState() {
@@ -30,34 +28,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _notifFuture = context.read<NotificationRepository>().getNotifications();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _newsFuture = _newsService.fetchNews(context.locale.languageCode);
-  }
-
   void _refreshAll() {
     setState(() {
       _profileFuture = context.read<DonorRepository>().getProfile();
       _notifFuture = context.read<NotificationRepository>().getNotifications();
-      _newsFuture = _newsService.fetchNews(context.locale.languageCode);
     });
   }
 
   void _showLanguageSelector(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (ctx) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(4))),
+            Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
             const SizedBox(height: 20),
-            Text('select_language'.tr(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              'select_language'.tr(),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
             const SizedBox(height: 12),
             _langTile(ctx, 'en', '🇬🇧', 'English'),
             _langTile(ctx, 'am', '🇪🇹', 'አማርኛ'),
@@ -72,59 +77,114 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final bool isSelected = ctx.locale.languageCode == code;
     return ListTile(
       leading: Text(flag, style: const TextStyle(fontSize: 22)),
-      title: Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-      trailing: isSelected ? Icon(Icons.check_circle_rounded, color: Colors.red.shade700) : null,
-      onTap: () { ctx.setLocale(Locale(code)); Navigator.pop(ctx); },
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+          color: isSelected ? AppColors.primary : AppColors.textPrimary,
+        ),
+      ),
+      trailing: isSelected
+          ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+          : null,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      onTap: () {
+        ctx.setLocale(Locale(code));
+        Navigator.pop(ctx);
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6FB),
+      backgroundColor: AppColors.bg,
       body: FutureBuilder<DonorModel>(
         future: _profileFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) return const LoadingWidget();
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const LoadingWidget();
+          }
           if (snapshot.hasError) return _buildErrorState(snapshot.error);
 
           final donor = snapshot.data;
 
           return RefreshIndicator(
             onRefresh: () async => _refreshAll(),
-            color: Colors.red,
+            color: AppColors.primary,
+            backgroundColor: Colors.white,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                // ════════════════════════ APP BAR ════════════════════════
+                // ══════════════════════ APP BAR ══════════════════════
                 SliverAppBar(
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.bg,
+                  surfaceTintColor: Colors.transparent,
                   elevation: 0,
                   pinned: true,
                   expandedHeight: 0,
                   title: Row(
                     children: [
+                      // Logo mark
                       Container(
-                        width: 36, height: 36,
-                        decoration: BoxDecoration(color: Colors.red.shade700, borderRadius: BorderRadius.circular(10)),
-                        child: const Icon(Icons.volunteer_activism, color: Colors.white, size: 20),
+                        width: 38, height: 38,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF8B0000), Color(0xFFC0152B)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.water_drop_rounded, color: Colors.white, size: 20),
                       ),
                       const SizedBox(width: 10),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('GIVE BLOOD', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1, fontSize: 15, color: Colors.black87)),
-                          Text('Bahir Dar Blood Bank', style: TextStyle(fontSize: 10, color: Colors.grey.shade500, fontWeight: FontWeight.w500)),
+                          const Text(
+                            'GIVE BLOOD',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.5,
+                              fontSize: 14,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            'Bahir Dar Blood Bank',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.textHint,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ],
                       ),
                     ],
                   ),
                   actions: [
-                    IconButton(
-                      icon: const Icon(Icons.language_rounded, color: Colors.black54),
-                      onPressed: () => _showLanguageSelector(context),
+                    Container(
+                      margin: const EdgeInsets.only(right: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgSubtle,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFFD5D5)),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.language_rounded, color: AppColors.textSecondary, size: 20),
+                        onPressed: () => _showLanguageSelector(context),
+                        padding: const EdgeInsets.all(8),
+                        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                      ),
                     ),
-                    const SizedBox(width: 4),
                   ],
                 ),
 
@@ -132,51 +192,90 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
 
-                      // ════════════ HERO GREETING & DONOR CARD ════════════
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (donor != null) ...[
-                              Text(
-                                'Hello, ${donor.name.split(' ')[0]}! 👋',
-                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                      // ══════════ GREETING ══════════
+                      if (donor != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 22),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Hello, ${donor.name.split(' ')[0]}! 👋',
+                                          style: const TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w900,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        const Text(
+                                          'Your blood saves lives every day.',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: AppColors.textHint,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Blood type chip
+                                  if (donor.bloodType != null)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.bgSubtle,
+                                        borderRadius: BorderRadius.circular(14),
+                                        border: Border.all(color: const Color(0xFFFFD5D5), width: 1.5),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          const Icon(Icons.water_drop_rounded, color: AppColors.primary, size: 16),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            donor.bloodType!,
+                                            style: const TextStyle(
+                                              color: AppColors.primary,
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                ],
                               ),
-                              const Text(
-                                'Your blood saves lives every day.',
-                                style: TextStyle(fontSize: 13, color: Colors.black45),
-                              ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 20),
+                              // ── Donor Card ──
                               DonorCard(donor: donor),
                             ],
-                          ],
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
-                      // ════════════ DONATION STATS BANNER ════════════
+                      // ══════════ STATS ══════════
                       if (donor != null) _buildStatsBanner(donor),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
-                      // ════════════ ALERTS PREVIEW ════════════
+                      // ══════════ ALERTS PREVIEW ══════════
                       _buildAlertsPreview(context),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
-                      // ════════════ QUICK SERVICES ════════════
+                      // ══════════ QUICK SERVICES ══════════
                       _buildQuickActions(context),
 
-                      const SizedBox(height: 24),
-
-                      // ════════════ NEWS FEED ════════════
-                      _buildNewsSection(context),
-
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 48),
                     ],
                   ),
                 ),
@@ -201,35 +300,43 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final eligible = donor.eligibilityStatus;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 22),
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFD31027), Color(0xFFEA384D)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFFFE5E5), width: 1.5),
           boxShadow: [
-            BoxShadow(color: Colors.red.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8)),
+            BoxShadow(
+              color: AppColors.primary.withOpacity(0.07),
+              blurRadius: 20,
+              offset: const Offset(0, 6),
+            ),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _statItem('${donor.totalDonations}', 'Total\nDonations', Icons.water_drop_rounded),
+            _statItem(
+              '${donor.totalDonations}',
+              'Donations',
+              Icons.water_drop_rounded,
+              AppColors.primary,
+            ),
             _statDivider(),
             _statItem(
-              eligible ? 'Ready' : (daysLeft != null && daysLeft > 0 ? '$daysLeft days' : 'Check'),
+              eligible ? 'Ready' : (daysLeft != null && daysLeft > 0 ? '${daysLeft}d' : 'Check'),
               'Status',
               eligible ? Icons.check_circle_rounded : Icons.hourglass_bottom_rounded,
+              eligible ? AppColors.success : AppColors.warning,
             ),
             _statDivider(),
             _statItem(
               donor.bloodType ?? '??',
-              'Blood\nType',
+              'Blood Type',
               Icons.bloodtype_rounded,
+              AppColors.accent,
             ),
           ],
         ),
@@ -237,19 +344,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _statItem(String value, String label, IconData icon) {
+  Widget _statItem(String value, String label, IconData icon, Color color) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: Colors.white70, size: 20),
-        const SizedBox(height: 6),
-        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
+        Container(
+          width: 44, height: 44,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(icon, color: color, size: 22),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.w900,
+            fontSize: 17,
+          ),
+        ),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 10), textAlign: TextAlign.center),
+        Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textHint,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
       ],
     );
   }
 
-  Widget _statDivider() => Container(width: 1, height: 50, color: Colors.white24);
+  Widget _statDivider() => Container(
+    width: 1, height: 52,
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [Colors.transparent, const Color(0xFFFFD5D5), Colors.transparent],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ),
+    ),
+  );
 
   // ─────────────────────────────────────────────────────────────────────
   // ALERTS PREVIEW
@@ -262,7 +401,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final unread = notifs.where((n) => !n.read).toList();
 
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 22),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -271,40 +410,87 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Row(
                     children: [
-                      const Text('🔔', style: TextStyle(fontSize: 16)),
-                      const SizedBox(width: 8),
-                      const Text('Staff Alerts', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.black87)),
+                      Container(
+                        width: 32, height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.bgSubtle,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.campaign_rounded, color: AppColors.primary, size: 18),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Staff Alerts',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       if (unread.isNotEmpty) ...[
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(color: Colors.red.shade600, borderRadius: BorderRadius.circular(20)),
-                          child: Text('${unread.length}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${unread.length}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                         ),
                       ],
                     ],
                   ),
                   TextButton(
                     onPressed: () {},
-                    child: Text('View All', style: TextStyle(color: Colors.red.shade600, fontWeight: FontWeight.bold, fontSize: 12)),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      padding: EdgeInsets.zero,
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('View All', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                        SizedBox(width: 2),
+                        Icon(Icons.chevron_right_rounded, size: 16),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               if (snapshot.connectionState == ConnectionState.waiting)
-                const Center(child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator(color: Colors.red, strokeWidth: 2),
-                ))
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(
+                      color: AppColors.primary,
+                      strokeWidth: 2.5,
+                    ),
+                  ),
+                )
               else if (notifs.isEmpty)
                 Container(
                   padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFFFE5E5)),
+                  ),
                   child: Row(
                     children: [
                       Icon(Icons.notifications_off_outlined, color: Colors.grey.shade300, size: 28),
                       const SizedBox(width: 14),
-                      Text('No staff alerts at this time.', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                      Text(
+                        'No staff alerts at this time.',
+                        style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                      ),
                     ],
                   ),
                 )
@@ -319,14 +505,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _alertCard(NotificationModel n) {
     final isRead = n.read;
+    final isEmergency = (n.title).toLowerCase().contains('urgent') ||
+        (n.title).toLowerCase().contains('emergency') ||
+        (n.title).toLowerCase().contains('critical') ||
+        (n.message).toLowerCase().contains('urgent');
+
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isRead ? Colors.white : Colors.red.shade50,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isRead ? Colors.grey.shade100 : Colors.red.shade100, width: 1.2),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 3))],
+        color: isRead
+            ? Colors.white
+            : (isEmergency ? const Color(0xFFFFF0F0) : AppColors.bgSubtle),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isRead
+              ? const Color(0xFFF0E5E5)
+              : (isEmergency ? const Color(0xFFFFCCCC) : const Color(0xFFFFD5D5)),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.025),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,12 +538,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Container(
             width: 40, height: 40,
             decoration: BoxDecoration(
-              color: isRead ? Colors.grey.shade100 : Colors.red.shade100,
+              color: isEmergency
+                  ? AppColors.primary.withOpacity(0.12)
+                  : (isRead ? Colors.grey.shade100 : AppColors.bgSubtle),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              Icons.campaign_rounded,
-              color: isRead ? Colors.grey.shade400 : Colors.red.shade700,
+              isEmergency ? Icons.emergency_rounded : Icons.campaign_rounded,
+              color: isEmergency
+                  ? AppColors.primary
+                  : (isRead ? Colors.grey.shade400 : AppColors.primary),
               size: 20,
             ),
           ),
@@ -350,67 +558,107 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   n.title ?? 'Notification',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isRead ? Colors.black54 : Colors.black87),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: isRead ? AppColors.textHint : AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 3),
                 Text(
                   n.message ?? '',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
           ),
           if (!isRead)
-            Container(width: 8, height: 8, decoration: BoxDecoration(color: Colors.red.shade500, shape: BoxShape.circle)),
+            Container(
+              width: 8, height: 8,
+              margin: const EdgeInsets.only(top: 4),
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+            ),
         ],
       ),
     );
   }
 
   // ─────────────────────────────────────────────────────────────────────
-  // QUICK ACTIONS (News removed)
+  // QUICK ACTIONS
   // ─────────────────────────────────────────────────────────────────────
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
-      {'icon': Icons.history_rounded,             'label': 'History',     'color': const Color(0xFF4A90D9), 'route': '/history'},
-      {'icon': Icons.location_on_rounded,          'label': 'Find Center', 'color': const Color(0xFF26B89A), 'route': '/map'},
-      {'icon': Icons.notifications_active_rounded, 'label': 'Alerts',     'color': const Color(0xFFE67E22), 'route': '/notifications'},
-      {'icon': Icons.favorite_rounded,             'label': 'Hero Letters', 'color': const Color(0xFFE91E63), 'route': '/appreciation'},
+      {'icon': Icons.history_rounded,             'label': 'History',       'color': AppColors.info,    'bg': const Color(0xFFEFF5FF), 'route': '/history'},
+      {'icon': Icons.location_on_rounded,          'label': 'Find Center',  'color': AppColors.success, 'bg': const Color(0xFFEFFAF6), 'route': '/map'},
+      {'icon': Icons.notifications_active_rounded, 'label': 'Alerts',       'color': AppColors.warning, 'bg': const Color(0xFFFFF8EC), 'route': '/notifications'},
+      {'icon': Icons.favorite_rounded,             'label': 'Hero Letters', 'color': AppColors.accent,  'bg': const Color(0xFFFFF0F0), 'route': '/appreciation'},
     ];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('QUICK SERVICES', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.black38, letterSpacing: 1.5)),
+          const Text(
+            'QUICK SERVICES',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textHint,
+              letterSpacing: 1.8,
+            ),
+          ),
           const SizedBox(height: 14),
           Row(
             children: actions.map((a) {
               final color = a['color'] as Color;
+              final bg = a['bg'] as Color;
               return Expanded(
                 child: GestureDetector(
                   onTap: () => Navigator.pushNamed(context, a['route'] as String),
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 4),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: color.withOpacity(0.12), blurRadius: 12, offset: const Offset(0, 4))],
+                      border: Border.all(color: const Color(0xFFF5E5E5), width: 1),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.08),
+                          blurRadius: 14,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 46, height: 46,
-                          decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
-                          child: Icon(a['icon'] as IconData, color: color, size: 24),
+                          width: 44, height: 44,
+                          decoration: BoxDecoration(
+                            color: bg,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(a['icon'] as IconData, color: color, size: 22),
                         ),
                         const SizedBox(height: 10),
-                        Text(a['label'] as String, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.grey.shade700)),
+                        Text(
+                          a['label'] as String,
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
@@ -424,161 +672,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────
-  // NEWS FEED
-  // ─────────────────────────────────────────────────────────────────────
-  Widget _buildNewsSection(BuildContext context) {
-    return FutureBuilder<List<dynamic>>(
-      future: _newsFuture,
-      builder: (context, snapshot) {
-        final newsList = snapshot.data ?? [];
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Row(
-                    children: [
-                      Text('📢', style: TextStyle(fontSize: 16)),
-                      SizedBox(width: 8),
-                      Text('Announcements', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Colors.black87)),
-                    ],
-                  ),
-                  TextButton(
-                    onPressed: () {},
-                    child: Text('See All', style: TextStyle(color: Colors.red.shade600, fontWeight: FontWeight.bold, fontSize: 12)),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            if (snapshot.connectionState == ConnectionState.waiting)
-              const Center(child: Padding(
-                padding: EdgeInsets.all(20),
-                child: CircularProgressIndicator(color: Colors.red, strokeWidth: 2),
-              ))
-            else if (newsList.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-                  child: Row(
-                    children: [
-                      const Text('📭', style: TextStyle(fontSize: 28)),
-                      const SizedBox(width: 14),
-                      Text('No announcements yet.', style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
-                    ],
-                  ),
-                ),
-              )
-            else
-              SizedBox(
-                height: 240,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(left: 20, right: 8),
-                  itemCount: newsList.length,
-                  itemBuilder: (context, index) => _newsCard(newsList[index]),
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _newsCard(dynamic news) {
-    final hasImage = news['imageUrl'] != null && news['imageUrl'].toString().isNotEmpty;
-    return Container(
-      width: 260,
-      margin: const EdgeInsets.only(right: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.orange.withOpacity(0.10), blurRadius: 16, offset: const Offset(0, 6))],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (hasImage)
-            Image.network(news['imageUrl'], width: double.infinity, height: 110, fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(height: 110, color: Colors.orange.shade50,
-                child: const Center(child: Icon(Icons.campaign_rounded, color: Colors.orange, size: 40))))
-          else
-            Container(height: 110, color: Colors.orange.shade50,
-              child: const Center(child: Icon(Icons.campaign_rounded, color: Colors.orange, size: 40))),
-          Container(height: 3, color: Colors.orange),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    news['title'] ?? '',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87, height: 1.3),
-                  ),
-                  const SizedBox(height: 6),
-                  Expanded(
-                    child: Text(
-                      news['content'] ?? '',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11, color: Colors.black45, height: 1.5),
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Icon(Icons.access_time_rounded, size: 11, color: Colors.grey.shade400),
-                      const SizedBox(width: 4),
-                      Text(_formatDate(news['createdAt']), style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDate(String? d) {
-    if (d == null) return '';
-    try {
-      final dt = DateTime.parse(d).toLocal();
-      return '${dt.day} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.month - 1]} ${dt.year}';
-    } catch (_) { return ''; }
-  }
-
-  // ─────────────────────────────────────────────────────────────────────
   // ERROR STATE
   // ─────────────────────────────────────────────────────────────────────
   Widget _buildErrorState(dynamic error) {
-    String msg = error is SocketException ? 'network_error'.tr() : '${'error_occurred'.tr()}\n($error)';
+    String msg = error is SocketException
+        ? 'network_error'.tr()
+        : '${'error_occurred'.tr()}\n($error)';
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.wifi_off_rounded, size: 64, color: Colors.red),
+            Container(
+              width: 80, height: 80,
+              decoration: BoxDecoration(
+                color: AppColors.bgSubtle,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFFFD5D5), width: 2),
+              ),
+              child: const Icon(Icons.wifi_off_rounded, size: 40, color: AppColors.primary),
+            ),
             const SizedBox(height: 20),
-            Text(msg, textAlign: TextAlign.center, style: const TextStyle(fontSize: 15)),
-            const SizedBox(height: 24),
+            Text(
+              msg,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 15, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 28),
             ElevatedButton.icon(
               onPressed: _refreshAll,
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const Icon(Icons.refresh_rounded, size: 18),
               label: Text('retry'.tr()),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade700,
+                backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),

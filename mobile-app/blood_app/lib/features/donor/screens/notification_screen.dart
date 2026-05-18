@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../data/notification_repository.dart';
+import '../data/donor_service.dart';
 import '../../../core/models/notification_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
 
@@ -24,6 +25,29 @@ class _NotificationScreenState extends State<NotificationScreen> {
     setState(() {
       _future = context.read<NotificationRepository>().getNotifications();
     });
+  }
+
+  Future<void> _handleResponse(String notificationId, String status) async {
+    final success = await DonorService.respondNotification(
+      notificationId: notificationId,
+      responseStatus: status,
+    );
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(status == 'ACCEPTED' ? 'Request Accepted ❤️' : 'Request Declined'),
+          backgroundColor: status == 'ACCEPTED' ? Colors.green.shade600 : Colors.red.shade600,
+        ),
+      );
+      _refresh();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update response'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   String _formatDate(DateTime date) {
@@ -277,6 +301,68 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600, height: 1.4),
                   ),
                   const SizedBox(height: 8),
+                  if (n.response == 'PENDING') ...[
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () => _handleResponse(n.id, 'ACCEPTED'),
+                          icon: const Icon(Icons.check_rounded, size: 16, color: Colors.white),
+                          label: const Text('Accept', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green.shade600,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          onPressed: () => _handleResponse(n.id, 'DECLINED'),
+                          icon: Icon(Icons.close_rounded, size: 16, color: Colors.red.shade600),
+                          label: Text('Decline', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red.shade600)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.red.shade600,
+                            side: BorderSide(color: Colors.red.shade200),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                  ] else if (n.response == 'ACCEPTED' || n.response == 'DECLINED') ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: n.response == 'ACCEPTED' ? Colors.green.shade50 : Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            n.response == 'ACCEPTED' ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                            size: 14,
+                            color: n.response == 'ACCEPTED' ? Colors.green.shade700 : Colors.red.shade700,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            n.response == 'ACCEPTED' ? 'Accepted' : 'Declined',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: n.response == 'ACCEPTED' ? Colors.green.shade800 : Colors.red.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

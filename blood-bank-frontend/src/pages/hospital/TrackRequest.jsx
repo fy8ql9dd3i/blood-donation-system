@@ -94,7 +94,7 @@ export default function TrackRequest() {
 
       <div className="grid grid-cols-1 gap-12">
         {/* --- REQUEST TRACKING --- */}
-        <Card className="rounded-[2.5rem] formal-border shadow-2xl overflow-hidden bg-white border-b-[12px] border-brand-600">
+        <Card className="rounded-2xl formal-border shadow-lg overflow-hidden bg-white border-b-4 border-brand-600">
           <div className="p-10 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Requirements</h2>
@@ -188,7 +188,7 @@ export default function TrackRequest() {
         </Card>
 
         {/* --- HOSPITAL TRACK TABLE --- */}
-        <Card className="rounded-[2.5rem] formal-border shadow-2xl overflow-hidden bg-white border-b-[12px] border-slate-900">
+        <Card className="rounded-2xl formal-border shadow-lg overflow-hidden bg-white border-b-4 border-slate-900">
           <div className="p-10 bg-slate-900 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-black text-white tracking-tight uppercase">Inventory Inbound Log</h2>
@@ -262,65 +262,65 @@ export default function TrackRequest() {
 
       {/* --- THANK YOU MODAL (ENHANCED) --- */}
       {selectedRequest && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-xl animate-in fade-in duration-500">
-          <Card className="w-full max-w-xl rounded-[3rem] formal-border shadow-[0_0_100px_rgba(211,16,39,0.2)] bg-white overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-12 bg-brand-600 text-white relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24 blur-3xl" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-xl animate-in fade-in duration-500">
+          <Card className="w-full max-w-xl rounded-2xl formal-border shadow-[0_0_100px_rgba(211,16,39,0.2)] bg-white overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-6 bg-brand-600 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
               <button
                 onClick={() => setSelectedRequest(null)}
-                className="absolute top-8 right-8 w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center hover:bg-white/40 transition-all text-xl"
+                className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center hover:bg-white/40 transition-all text-lg"
               >✕</button>
-              <div className="w-20 h-20 bg-white/20 rounded-3xl flex items-center justify-center text-4xl mb-6 animate-bounce-slow">💝</div>
-              <h3 className="text-3xl font-black tracking-tighter uppercase leading-tight">Express Gratitude<br />አድናቆትዎን ይግለጹ</h3>
-              <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.3em] mt-3">Official feedback to the regional blood bank</p>
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl mb-4 animate-bounce-slow">💝</div>
+              <h3 className="text-2xl font-black tracking-tighter uppercase leading-tight">Express Gratitude<br />አድናቆትዎን ይግለጹ</h3>
+              <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Official feedback to the regional blood bank</p>
             </div>
-            <div className="p-12 space-y-8">
-              <div className="grid grid-cols-2 gap-6">
-                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Patient Name</p>
-                  <p className="text-xl font-black text-slate-900 tracking-tighter truncate" title={selectedRequest.patientName}>{selectedRequest.patientName || 'Unknown'}</p>
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Patient Name</p>
+                  <p className="text-lg font-black text-slate-900 tracking-tighter truncate" title={selectedRequest.patientName}>{selectedRequest.patientName || 'Unknown'}</p>
                 </div>
-                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Biological Group</p>
-                  <p className="text-2xl font-black text-slate-900 tracking-tighter">{selectedRequest.bloodType}</p>
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Biological Group</p>
+                  <p className="text-xl font-black text-slate-900 tracking-tighter">{selectedRequest.bloodType}</p>
                 </div>
-                <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Verified Units</p>
-                  <p className="text-2xl font-black text-slate-900 tracking-tighter">{selectedRequest.unitsRequired}</p>
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 col-span-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Verified Units</p>
+                  <p className="text-xl font-black text-slate-900 tracking-tighter">{selectedRequest.unitsRequired}</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-2">Clinical Context • ክሊኒካዊ ሁኔታ</label>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Clinical Context • ክሊኒካዊ ሁኔታ</label>
                 <input
                   type="text"
                   value={patientContext}
                   onChange={(e) => setPatientContext(e.target.value)}
                   placeholder="e.g. Birth Mom / Childbirth success"
-                  className="w-full rounded-2xl bg-slate-50 border-2 border-slate-100 px-6 py-4 text-sm font-bold text-slate-900 focus:border-brand-500 focus:ring-0 transition-all"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-bold text-slate-900 focus:border-brand-500 focus:ring-0 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-2">Your Appreciation • የእርስዎ መልዕክት</label>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Your Appreciation • የእርስዎ መልዕክት</label>
                 <textarea
-                  rows={5}
+                  rows={4}
                   value={thankYouMessage}
                   onChange={(e) => setThankYouMessage(e.target.value)}
                   placeholder="Share how this supply impacted patient outcome..."
-                  className="w-full rounded-[2rem] bg-slate-50 border-2 border-slate-100 px-8 py-6 text-sm font-bold text-slate-900 focus:border-brand-500 focus:ring-0 transition-all resize-none"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm font-bold text-slate-900 focus:border-brand-500 focus:ring-0 transition-all resize-none"
                 />
               </div>
 
               <button
                 onClick={handleSendThankYou}
                 disabled={isSending}
-                className="w-full bg-slate-900 hover:bg-black disabled:opacity-50 text-white py-6 rounded-[2rem] shadow-2xl shadow-slate-200 font-black uppercase tracking-[0.2em] text-xs transition-all active:scale-95 flex items-center justify-center gap-4"
+                className="w-full bg-slate-900 hover:bg-black disabled:opacity-50 text-white py-4 rounded-xl shadow-lg shadow-slate-200 font-black uppercase tracking-[0.2em] text-xs transition-all active:scale-95 flex items-center justify-center gap-3"
               >
                 {isSending ? (
                   <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Transmitting...</>
                 ) : (
-                  <><span className="text-xl">🕊️</span> Dispatch Gratitude Letter</>
+                  <><span className="text-lg">🕊️</span> Dispatch Gratitude Letter</>
                 )}
               </button>
             </div>

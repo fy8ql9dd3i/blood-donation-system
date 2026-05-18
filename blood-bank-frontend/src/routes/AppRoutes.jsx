@@ -282,6 +282,7 @@ function BloodBankLayout() {
         { to: '/blood-bank/dashboard', label: 'Dashboard', end: true },
         { to: '/blood-bank/inventory', label: 'Inventory' },
         { to: '/blood-bank/lab/verify', label: 'Lab Verify' },
+        { to: '/blood-bank/history', label: 'Donation History' },
         { to: '/blood-bank/reports', label: 'Reports' },
         { to: '/blood-bank/reports/export', label: 'Export' },
         { to: '/blood-bank/emergency', label: '🚨 Emergency Alert' },
@@ -298,7 +299,6 @@ function AdminLayout() {
       title="Administration"
       links={[
         { to: '/admin/dashboard', label: 'Dashboard', end: true },
-        { to: '/admin/history', label: '📜 Donation History' },
         { to: '/register-hospital', label: 'Register hospital' },
         { to: '/admin/invite-blood-bank', label: 'Register bank staff' },
         { to: '/admin/users', label: 'Users' },
@@ -306,7 +306,6 @@ function AdminLayout() {
         { to: '/admin/emergency', label: '🚨 Emergency Alert' },
         { to: '/admin/news', label: '📢 Post News' },
         { to: '/admin/broadcast', label: '🔔 Broadcast All' },
-        { to: '/admin/appreciation', label: '💝 Appreciation' },
       ]}
     />
   )
@@ -383,6 +382,7 @@ export default function AppRoutes() {
 
           <Route path="inventory" element={<ManageInventory />} />
           <Route path="lab/verify" element={<VerifyDonor />} />
+          <Route path="history" element={<DonationHistory />} />
           <Route path="reports" element={<Reports />} />
           <Route path="reports/export" element={<ExportExcel />} />
           <Route path="emergency" element={<EmergencyAlerts />} />
@@ -395,14 +395,12 @@ export default function AppRoutes() {
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="history" element={<DonationHistory />} />
           <Route path="invite-blood-bank" element={<RegisterColleague />} />
           <Route path="users" element={<ManageUsers />} />
           <Route path="settings" element={<Settings />} />
           <Route path="emergency" element={<EmergencyAlerts />} />
           <Route path="news" element={<PostNews />} />
           <Route path="broadcast" element={<BroadcastAll />} />
-          <Route path="appreciation" element={<AppreciationLetters />} />
         </Route>
       </Route>
 

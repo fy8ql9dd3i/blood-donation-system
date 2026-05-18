@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Card } from '../../../components/ui/Card'
 import donationService from '../../../services/donationService'
@@ -30,6 +31,8 @@ function NextDateBadge({ collectionDate }) {
 }
 
 export default function DonationHistory() {
+  const [searchTerm, setSearchTerm] = useState('')
+
   const donationsQ = useQuery({
     queryKey: ['donations', 'all'],
     queryFn: () => donationService.getAllDonations(),
@@ -38,6 +41,14 @@ export default function DonationHistory() {
   const rawDonations = Array.isArray(donationsQ.data) ? donationsQ.data : (donationsQ.data?.data || [])
   // Sort newest first
   const donations = [...rawDonations].sort((a, b) => new Date(b.collectionDate) - new Date(a.collectionDate))
+
+  // Filter based on phone / name search
+  const filteredDonations = donations.filter(d => {
+    const phone = (d.donor?.phone || d.donor?.phoneNumber || '').toLowerCase()
+    const name = (d.donor?.name || '').toLowerCase()
+    const query = searchTerm.toLowerCase().trim()
+    return phone.includes(query) || name.includes(query)
+  })
 
   // Summary stats
   const totalUnits = donations.reduce((s, d) => s + (d.units || 0), 0)
@@ -59,6 +70,39 @@ export default function DonationHistory() {
               <p className="text-2xl font-black text-slate-700">{totalUnits}</p>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Units</p>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modern Search Control */}
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center bg-white p-4 rounded-xl border border-slate-100 shadow-sm transition-all duration-300 hover:shadow-md">
+        <div className="relative flex-1 max-w-md">
+          <input
+            type="text"
+            placeholder="Search by phone / mobile / donor name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all placeholder:text-slate-400 text-slate-700 font-medium"
+          />
+          <span className="absolute left-3 top-3 text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4.5 w-4.5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </button>
+          )}
+        </div>
+        {searchTerm && (
+          <div className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+            🔍 Found <span className="text-red-600 font-extrabold">{filteredDonations.length}</span> matching records
           </div>
         )}
       </div>
@@ -90,9 +134,15 @@ export default function DonationHistory() {
                     No donation records found.
                   </td>
                 </tr>
+              ) : filteredDonations.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="px-6 py-12 text-center text-slate-500 font-medium">
+                    No records found matching "{searchTerm}"
+                  </td>
+                </tr>
               ) : (
-                donations.map((d, index) => (
-                  <tr key={d.id} className={`hover:bg-slate-50 transition-colors ${index === 0 ? 'bg-red-50/40' : ''}`}>
+                filteredDonations.map((d, index) => (
+                  <tr key={d.id} className={`hover:bg-slate-50 transition-colors ${index === 0 && !searchTerm ? 'bg-red-50/40' : ''}`}>
                     <td className="px-6 py-4 font-medium text-slate-900">
                       <div className="flex items-center gap-2">
                         {index === 0 && (
