@@ -19,6 +19,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _addressController = TextEditingController();
 
   String _selectedCountryCode = '+251'; // Default: Ethiopia
+  String? _selectedGender; // Selected Gender
 
   final List<Map<String, String>> _countryCodes = [
     {'code': '+251', 'name': 'Ethiopia'},
@@ -41,6 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         "name": _fullNameController.text.trim(),
         "phoneNumber": "$_selectedCountryCode${_phoneController.text.trim()}",
         "age": int.parse(_ageController.text.trim()),
+        "gender": _selectedGender,
         "address": _addressController.text.trim(),
         "language": context.locale.languageCode,
       });
@@ -175,6 +177,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return 'Age must be a valid number';
                     }
                     return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Gender Dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedGender,
+                  decoration: InputDecoration(
+                    labelText: '${'gender'.tr()} *',
+                    prefixIcon: const Icon(Icons.person_outline),
+                  ),
+                  items: [
+                    DropdownMenuItem(value: 'Male', child: Text('male'.tr())),
+                    DropdownMenuItem(value: 'Female', child: Text('female'.tr())),
+                    DropdownMenuItem(value: 'Other', child: Text('other'.tr())),
+                  ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'gender_required'.tr();
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedGender = value;
+                    });
                   },
                 ),
                 const SizedBox(height: 16),

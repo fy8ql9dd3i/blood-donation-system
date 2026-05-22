@@ -61,5 +61,11 @@
     "welcome": "እንኳን ደህና መጡ",
     "get_started_registration": "ለመመዝገብ ይጀምሩ",
     "need_help": "እርዳታ ይፈልጋሉ?",
-    "contact_us": "ያግኙን"
+    "contact_us": "ያግኙን",
+    "gender": "ጾታ",
+    "select_gender": "ጾታ ይምረጡ",
+    "male": "ወንድ",
+    "female": "ሴት",
+    "other": "ሌላ",
+    "gender_required": "ጾታ ማስገባት ግዴታ ነው"
 }

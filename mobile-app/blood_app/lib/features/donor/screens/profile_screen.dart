@@ -28,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController _languageController;
   bool _isEditing = false;
   bool _isSaving = false;
+  String? _gender;
 
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _phoneController = TextEditingController(text: donor.phoneNumber ?? '');
     _addressController = TextEditingController(text: donor.address ?? '');
     _languageController = TextEditingController(text: donor.language);
+    _gender = donor.gender;
     setState(() {});
   }
 
@@ -66,6 +68,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           latitude: donor.latitude,
           longitude: donor.longitude,
           language: _languageController.text.trim(),
+          gender: _gender,
         );
         await context.read<DonorRepository>().updateProfile(updatedDonor);
         _profileFuture = Future.value(updatedDonor);
@@ -239,6 +242,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
+                  _buildGenderDropdown(),
+                  const SizedBox(height: 20),
                   _buildLanguageDropdown(),
                   const SizedBox(height: 40),
                 ],
@@ -292,6 +297,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
         ),
       ],
+    );
+  }
+
+  Widget _buildGenderDropdown() {
+    return DropdownButtonFormField<String>(
+      value: ['Male', 'Female', 'Other'].contains(_gender) ? _gender : null,
+      decoration: InputDecoration(
+        labelText: 'gender'.tr(),
+        prefixIcon: const Icon(Icons.person_outline_rounded, color: Colors.red),
+        filled: true,
+        fillColor: Colors.grey.shade50,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      items: [
+        DropdownMenuItem(value: 'Male', child: Text('male'.tr())),
+        DropdownMenuItem(value: 'Female', child: Text('female'.tr())),
+        DropdownMenuItem(value: 'Other', child: Text('other'.tr())),
+      ],
+      onChanged: _isEditing ? (value) {
+        if (value != null) {
+          setState(() {
+            _gender = value;
+          });
+        }
+      } : null,
     );
   }
 

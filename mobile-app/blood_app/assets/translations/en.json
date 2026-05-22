@@ -61,5 +61,11 @@
     "welcome": "Welcome",
     "get_started_registration": "Get Started - Register",
     "need_help": "Need help?",
-    "contact_us": "Contact Us"
+    "contact_us": "Contact Us",
+    "gender": "Gender",
+    "select_gender": "Select Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "gender_required": "Gender is required"
 }

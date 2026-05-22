@@ -8,30 +8,30 @@ import 'package:flutter/services.dart';
 // ─────────────────────────────────────────────────────────────
 
 class AppColors {
-  // Brand reds
-  static const primary     = Color(0xFFC0152B);
-  static const accent      = Color(0xFFE8192C);
-  static const accentLight = Color(0xFFFF4D5E);
-  static const crimsonDeep = Color(0xFF8B0000);
+  // Brand reds (Vibrant, similar to FB Blood Donation)
+  static const primary     = Color(0xFFE52020);
+  static const accent      = Color(0xFFFF3B30);
+  static const accentLight = Color(0xFFFF6359);
+  static const crimsonDeep = Color(0xFFB01212);
 
-  // Backgrounds
-  static const bg          = Color(0xFFFFF5F5);
+  // Backgrounds (Clean, Facebook-style neutral gray/white)
+  static const bg          = Color(0xFFF0F2F5);
   static const bgCard      = Color(0xFFFFFFFF);
-  static const bgSubtle    = Color(0xFFFFF0F0);
+  static const bgSubtle    = Color(0xFFF7F8FA);
 
-  // Dark surfaces (donor card)
-  static const darkSurface = Color(0xFF1A0A0C);
-  static const darkCard    = Color(0xFF2C1215);
+  // Dark surfaces
+  static const darkSurface = Color(0xFF1C1E21);
+  static const darkCard    = Color(0xFF242526);
 
   // Text
-  static const textPrimary   = Color(0xFF1A0A0C);
-  static const textSecondary = Color(0xFF6B3040);
-  static const textHint      = Color(0xFFB08090);
+  static const textPrimary   = Color(0xFF050505);
+  static const textSecondary = Color(0xFF65676B);
+  static const textHint      = Color(0xFF8D949E);
 
   // Status
-  static const success = Color(0xFF00A878);
+  static const success = Color(0xFF31A24C);
   static const warning = Color(0xFFF59E0B);
-  static const info    = Color(0xFF4A90D9);
+  static const info    = Color(0xFF1877F2);
 }
 
 class AppTheme {

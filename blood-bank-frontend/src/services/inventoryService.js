@@ -21,3 +21,21 @@ export async function getInventoryAlerts() {
   const { data } = await api.get('/inventory/alerts')
   return data
 }
+
+/** DELETE /api/inventory/:id — discard a blood inventory item */
+export async function deleteInventoryItem(id) {
+  const { data } = await api.delete(`/inventory/${id}`)
+  return data
+}
+
+/** DELETE /api/inventory/purge-expired — purge all expired blood stock at once */
+export async function purgeExpiredStock() {
+  const { data } = await api.delete('/inventory/purge-expired')
+  return data
+}
+
+/** DELETE /api/inventory/purge-all — purge all blood stock at once */
+export async function purgeAllStock() {
+  const { data } = await api.delete('/inventory/purge-all')
+  return data
+}

@@ -13,6 +13,7 @@ class DonorModel {
   final double? longitude;
   final String language;
   final int totalDonations;
+  final String? gender;
 
   DonorModel({
     required this.donorID,
@@ -29,6 +30,7 @@ class DonorModel {
     this.longitude,
     required this.language,
     this.totalDonations = 0,
+    this.gender,
   });
 
   factory DonorModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class DonorModel {
       longitude: json['longitude']?.toDouble(),
       language: json['language'] ?? 'en',
       totalDonations: json['totalDonations'] ?? 0,
+      gender: json['gender'],
     );
   }
 
@@ -72,6 +75,7 @@ class DonorModel {
       'longitude': longitude,
       'language': language,
       'totalDonations': totalDonations,
+      'gender': gender,
     };
   }
 }

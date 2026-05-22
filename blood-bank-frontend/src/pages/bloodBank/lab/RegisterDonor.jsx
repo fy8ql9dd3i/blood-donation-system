@@ -14,6 +14,7 @@ const regSchema = Yup.object({
   age: Yup.number().min(18, 'Must be at least 18').max(65, 'Max age is 65').required('Age is required'),
   phone: Yup.string().required('Phone is required'),
   address: Yup.string().required('Address is required'),
+  gender: Yup.string().required('Gender is required'),
 })
 
 export default function RegisterDonor() {
@@ -40,7 +41,7 @@ export default function RegisterDonor() {
         
         <Card className="p-6 shadow-md border border-slate-200">
           <Formik
-            initialValues={{ name: '', age: '', phone: '', address: '' }}
+            initialValues={{ name: '', age: '', gender: '', phone: '', address: '' }}
             validationSchema={regSchema}
             onSubmit={(values, { setSubmitting, resetForm }) => {
               regMutation.mutate(values, {
@@ -64,6 +65,17 @@ export default function RegisterDonor() {
                     <label className="block text-sm font-semibold text-slate-700 mb-1">Age</label>
                     <Field as={Input} type="number" name="age" placeholder="25" error={touched.age && errors.age} />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">Gender</label>
+                  <Field as="select" name="gender" className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:border-brand-500 focus:outline-none font-medium text-slate-900">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </Field>
+                  {touched.gender && errors.gender && <div className="text-red-500 text-xs mt-1">{errors.gender}</div>}
                 </div>
 
                 <div>

@@ -19,6 +19,13 @@ function pickList(res) {
   return []
 }
 
+function normalizePhoneForComparison(value) {
+  const raw = String(value || '').trim().replace(/[\s\-().+]/g, '')
+  if (raw.startsWith('251') && raw.length === 12) return raw
+  if (raw.startsWith('09') && raw.length === 10) return `251${raw.slice(1)}`
+  if (raw.startsWith('9') && raw.length === 9) return `251${raw}`
+  return raw
+}
 
 export default function VerifyDonor() {
   const queryClient = useQueryClient()
@@ -51,7 +58,8 @@ export default function VerifyDonor() {
       toast.success('Sent to Inventory Successfully')
     },
     onError: (err) => {
-      toast.error('Failed to update data')
+      const message = err.response?.data?.message || err.message || 'Failed to update data';
+      toast.error(message)
     },
   })
 
@@ -60,6 +68,16 @@ export default function VerifyDonor() {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['donors'] })
       const isExisting = res?.alreadyExists || res?.message?.toLowerCase().includes('already exists')
+
+      const donorObj = isExisting ? res?.donor : res;
+      if (donorObj && donorObj.lastDonationDate) {
+        const diffDays = Math.ceil(Math.abs(new Date() - new Date(donorObj.lastDonationDate)) / (1000 * 60 * 60 * 24))
+        if (diffDays < 90) {
+          toast.error(`Restriction: Donor last donated ${diffDays} days ago. Must wait 3 months! (${90 - diffDays} days remaining).`)
+          return
+        }
+      }
+
       if (isExisting) {
         toast.info('Donor is already registered! Loaded existing profile from database.')
       } else {
@@ -98,14 +116,14 @@ export default function VerifyDonor() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <Button 
+          <Button
             onClick={() => {
               const token = localStorage.getItem('token');
-              const base = api.defaults.baseURL.startsWith('http') 
-                ? api.defaults.baseURL 
+              const base = api.defaults.baseURL.startsWith('http')
+                ? api.defaults.baseURL
                 : window.location.origin + api.defaults.baseURL;
               window.open(`${base}/reports/lab-generate?token=${token}`, '_blank');
-            }} 
+            }}
             className="bg-emerald-600 text-white px-4 py-2 rounded text-xs uppercase font-bold hover:bg-emerald-700 transition-colors shadow-lg"
           >
             Generate Lab Report
@@ -120,10 +138,22 @@ export default function VerifyDonor() {
         {/* Horizontal Walk-In Registration Dashboard Component - RE-ADDED FOR LAB TESTER */}
         <div className="bg-slate-100 border-b-2 border-slate-300 p-3">
           <Formik
-            initialValues={{ name: '', age: '', phone: '', address: '' }}
+            initialValues={{ name: '', age: '', phone: '', gender: '', address: '' }}
             onSubmit={(values, { resetForm }) => {
-              if(!values.name || !values.age || !values.phone || !values.address) {
+              if (!values.name || !values.age || !values.phone || !values.address || !values.gender) {
                 toast.error('All fields are required to register a donor'); return;
+              }
+              const parsedAge = parseInt(values.age);
+              if (isNaN(parsedAge) || parsedAge < 18 || parsedAge > 65) {
+                toast.error('Donor must be between 18 and 65 years old to register');
+                return;
+              }
+              // Prevent duplicate registration of the same phone number
+              const normalizedTarget = normalizePhoneForComparison(values.phone)
+              const phoneExists = donors.some(d => normalizePhoneForComparison(d.phone || d.phoneNumber) === normalizedTarget)
+              if (phoneExists) {
+                toast.warning(`A donor with phone number ${values.phone} is already in the registry. Search for them below instead of registering again.`);
+                return;
               }
               regMutation.mutate({ ...values, registeredBy: 'lab' }, { onSuccess: () => resetForm() })
             }}
@@ -148,6 +178,7 @@ export default function VerifyDonor() {
                             setFieldValue('name', data.name || '');
                             setFieldValue('age', data.age || '');
                             setFieldValue('address', data.address || '');
+                            setFieldValue('gender', data.gender || '');
                             setSearchTerm(trimmedPhone); // Automatically filter table below to show their record!
                             toast.info(`Donor found! Previously donated ${data.totalDonations || 0} times. Details autofilled!`);
                           }
@@ -167,7 +198,16 @@ export default function VerifyDonor() {
                 </div>
                 <div className="w-16">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Age</label>
-                  <Field name="age" type="number" className="w-full text-xs p-1.5 border border-slate-300 bg-white rounded shadow-sm focus:outline-none text-center" />
+                  <Field name="age" type="number" min="18" max="65" className="w-full text-xs p-1.5 border border-slate-300 bg-white rounded shadow-sm focus:outline-none text-center" />
+                </div>
+                <div className="w-32">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Gender</label>
+                  <Field as="select" name="gender" className="w-full text-xs p-1.5 border border-slate-300 bg-white rounded shadow-sm focus:outline-none">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </Field>
                 </div>
                 <div className="flex-[2] min-w-[150px]">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Address</label>
@@ -194,6 +234,7 @@ export default function VerifyDonor() {
               <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-16">Hb</th>
               <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-24">BP/Pulse</th>
               <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-16">Temp</th>
+              <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-20">Vol (mL)</th>
               <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-24">Last Don.</th>
               <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-32">Coll / Exp Date</th>
               <th className="border border-slate-300 px-2 py-3 text-center font-black uppercase w-24">Status</th>
@@ -231,7 +272,14 @@ export default function VerifyDonor() {
                       collection_date: today,
                       expiry_date: new Date(new Date().getTime() + 42 * 24 * 3600 * 1000).toISOString().slice(0, 10),
                     }}
-                    onSubmit={(values) => mutation.mutate(values)}
+                    onSubmit={(values) => {
+                      const parsedAge = parseInt(values.age);
+                      if (isNaN(parsedAge) || parsedAge < 18 || parsedAge > 65) {
+                        toast.error('Donor must be between 18 and 65 years old to donate');
+                        return;
+                      }
+                      mutation.mutate(values);
+                    }}
                   >
                     {({ submitForm, values }) => (
                       <tr className={clsx("transition-colors", d.status === "rejected" ? "bg-red-50 opacity-70" : "hover:bg-slate-50")}>
@@ -239,9 +287,21 @@ export default function VerifyDonor() {
                           <Field name="name" className="w-full bg-transparent border-none font-bold text-slate-800 outline-none text-[11px] mb-1" placeholder="Name" />
                           <Field name="phone" className="w-full bg-transparent border-none outline-none text-[10px] font-mono text-slate-500" placeholder="Phone" />
                           <Field name="address" className="w-full bg-transparent border-none outline-none text-[10px] text-slate-400 truncate" placeholder="Address" />
+                          <div className="mt-1 flex items-center">
+                            <span className={clsx(
+                              "px-1.5 py-0.5 rounded-[3px] text-[8px] font-black uppercase tracking-tight border",
+                              !d.totalDonations || d.totalDonations === 0
+                                ? "bg-slate-50 text-slate-500 border-slate-200"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            )}>
+                              {!d.totalDonations || d.totalDonations === 0
+                                ? "1st Time Donor"
+                                : `${d.totalDonations} Donation${d.totalDonations > 1 ? 's' : ''}`}
+                            </span>
+                          </div>
                         </td>
                         <td className="border border-slate-300 p-1 text-center font-bold text-[12px] text-slate-600">
-                          <Field name="age" type="number" className="w-full bg-transparent border-none text-center outline-none text-[11px]" />
+                          <Field name="age" type="number" min="18" max="65" className="w-full bg-transparent border-none text-center outline-none text-[11px]" />
                         </td>
                         <td className="border border-slate-300 p-1 text-center">
                           <Field as="select" name="blood_type" className="w-full bg-slate-100 border border-slate-200 rounded px-1 py-1.5 outline-none text-blue-800 font-bold text-[12px]">
@@ -276,6 +336,9 @@ export default function VerifyDonor() {
                         <td className="border border-slate-300 p-1 text-center">
                           <Field name="bodyTemperature" type="number" step="0.1" className="w-12 bg-slate-50 border border-slate-200 rounded text-center text-[11px]" />
                         </td>
+                        <td className="border border-slate-300 p-1 text-center">
+                          <Field name="donation_amount" type="number" className="w-14 bg-slate-50 border border-slate-200 rounded text-center text-[11px]" />
+                        </td>
                         <td className="border border-slate-300 p-2 text-center">
                           <div className="flex flex-col items-center">
                             <span className="text-[11px] font-mono text-slate-600">
@@ -289,16 +352,16 @@ export default function VerifyDonor() {
                           </div>
                         </td>
                         <td className="border border-slate-300 p-1 text-center">
-                            <div className="flex flex-col gap-1">
-                               <div className="flex items-center gap-1">
-                                  <span className="text-[8px] font-bold text-slate-400 w-8">COLL:</span>
-                                  <Field name="collection_date" type="date" className="bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] w-full" />
-                               </div>
-                               <div className="flex items-center gap-1">
-                                  <span className="text-[8px] font-bold text-slate-400 w-8">EXP:</span>
-                                  <Field name="expiry_date" type="date" className="bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] w-full" />
-                               </div>
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1">
+                              <span className="text-[8px] font-bold text-slate-400 w-8">COLL:</span>
+                              <Field name="collection_date" type="date" className="bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] w-full" />
                             </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[8px] font-bold text-slate-400 w-8">EXP:</span>
+                              <Field name="expiry_date" type="date" className="bg-slate-50 border border-slate-200 rounded px-1 py-0.5 text-[10px] w-full" />
+                            </div>
+                          </div>
                         </td>
                         <td className="border border-slate-300 p-2 text-center uppercase tracking-wider font-black text-[10px]">
                           {d.status === 'rejected' ? <span className="text-red-600">Rejected</span> :
@@ -307,37 +370,35 @@ export default function VerifyDonor() {
                         </td>
                         <td className="border border-slate-300 p-1 text-center">
                           {d.status === 'rejected' ? (
-                            <button 
-                               type="button" 
-                               onClick={() => { if(window.confirm('Permanent Remove Rejected Donor?')) deleteM.mutate(d.donorID) }}
-                               className="bg-red-500 text-white px-2 py-1.5 rounded font-black uppercase text-[10px] hover:bg-red-700 w-full transition-colors shadow-sm"
+                            <button
+                              type="button"
+                              onClick={() => { if (window.confirm('Permanent Remove Rejected Donor?')) deleteM.mutate(d.donorID) }}
+                              className="bg-red-500 text-white px-2 py-1.5 rounded font-black uppercase text-[10px] hover:bg-red-700 w-full transition-colors shadow-sm"
                             >
-                               Purge Rejected
+                              Purge Rejected
                             </button>
                           ) : (
                             <div className="flex flex-col gap-1 items-center">
-                                <button
-                                  type="button"
-                                  onClick={submitForm}
-                                  disabled={mutation.isPending || !isEligible || values.blood_type === 'Unknown'}
-                                  className={clsx(
-                                    "text-white px-2 py-1.5 rounded font-black uppercase text-[10px] w-full transition-colors shadow-sm",
-                                    (!isEligible || values.blood_type === 'Unknown') ? 'bg-slate-400 cursor-not-allowed' :
-                                      (values.hiv === 'Positive' || values.hbv === 'Positive' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700')
-                                  )}
-                                >
-                                  {values.hiv === 'Positive' || values.hbv === 'Positive' ? 'Mark Rejected' : (!isEligible ? 'Wait 90 Days' : 'Verify & Bleed')}
-                                </button>
-                                
-                                {!isEligible && (
-                                   <button 
-                                      type="button"
-                                      onClick={() => { if(window.confirm('The donor is ineligible. Do you want to remove them from the list?')) deleteM.mutate(d.donorID) }} 
-                                      className="text-[9px] font-bold text-red-400 hover:text-red-700 underline uppercase tracking-tighter"
-                                   >
-                                      Remove Ineligible
-                                   </button>
+                              <button
+                                type="button"
+                                onClick={submitForm}
+                                disabled={mutation.isPending || !isEligible || values.blood_type === 'Unknown'}
+                                className={clsx(
+                                  "text-white px-2 py-1.5 rounded font-black uppercase text-[10px] w-full transition-colors shadow-sm",
+                                  (!isEligible || values.blood_type === 'Unknown') ? 'bg-slate-400 cursor-not-allowed' :
+                                    (values.hiv === 'Positive' || values.hbv === 'Positive' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700')
                                 )}
+                              >
+                                {values.hiv === 'Positive' || values.hbv === 'Positive' ? 'Mark Rejected' : (!isEligible ? 'Wait 90 Days' : 'Verify & Bleed')}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => { if (window.confirm('Are you sure you want to remove this donor profile from the registry?')) deleteM.mutate(d.donorID) }}
+                                className="text-[9px] font-bold text-red-400 hover:text-red-700 underline uppercase tracking-tighter"
+                              >
+                                Remove Donor
+                              </button>
                             </div>
                           )}
                         </td>
@@ -348,7 +409,7 @@ export default function VerifyDonor() {
               })
             ) : (
               <tr>
-                <td colSpan="11" className="border border-slate-300 p-24 text-center text-slate-300 font-black uppercase tracking-widest text-lg">
+                <td colSpan="13" className="border border-slate-300 p-24 text-center text-slate-300 font-black uppercase tracking-widest text-lg">
                   Registry Empty
                 </td>
               </tr>

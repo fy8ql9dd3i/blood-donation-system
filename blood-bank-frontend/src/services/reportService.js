@@ -5,8 +5,9 @@
 import api from './api'
 
 /** GET /api/reports/generate — Excel workbook stream */
-export async function downloadReportExcel() {
+export async function downloadReportExcel(params) {
   return api.get('/reports/generate', {
+    params,
     responseType: 'blob',
   })
 }

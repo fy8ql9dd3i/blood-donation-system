@@ -49,5 +49,11 @@
     "select_language": "Afaan filadhu",
     "network_error": "Rakkina networkii. Maaloo deebisaa yaalaa.",
     "server_error": "Rakkina serverii. Maaloo booda deebisaa yaalaa.",
-    "no_data": "Ragaan hin jiru"
+    "no_data": "Ragaan hin jiru",
+    "gender": "Saala",
+    "select_gender": "Saala filadhu",
+    "male": "Dhiira",
+    "female": "Dubartii",
+    "other": "Kan biraa",
+    "gender_required": "Saalli dirqama"
 }

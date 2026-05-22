@@ -33,6 +33,7 @@ export default function ManageInventory() {
   const [activeTab, setActiveTab] = useState('inventory')
   const [filterType, setFilterType] = useState('ALL')
   const [dispatchDefaults, setDispatchDefaults] = useState({ hospitalId: '', bloodType: 'O+', units: 1, requestId: '' })
+  const [discardIdInput, setDiscardIdInput] = useState('')
 
   // --- Queries ---
   const inventoryQ = useQuery({
@@ -67,10 +68,10 @@ export default function ManageInventory() {
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ['inventory'] })
       queryClient.invalidateQueries({ queryKey: ['requests'] })
-      
+
       const statusText = res.data?.status || 'processed'
       const savers = res.data?.lifeSavers || []
-      
+
       if (statusText === 'fulfilled' && savers.length > 0) {
         toast.success(
           <div>
@@ -112,22 +113,52 @@ export default function ManageInventory() {
     onError: () => toast.error('Failed to delete request'),
   })
 
+  const deleteStockM = useMutation({
+    mutationFn: (id) => inventoryService.deleteInventoryItem(id),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      toast.info(res?.message || 'Specimen discarded and removed from ledger.')
+    },
+    onError: (err) => toast.error(err.response?.data?.message || 'Failed to discard specimen.')
+  })
+
+  const purgeExpiredM = useMutation({
+    mutationFn: () => inventoryService.purgeExpiredStock(),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      const count = res?.deletedCount ?? res?.data?.deletedCount ?? 0
+      toast.success(`🗑️ ${count} expired blood bag(s) purged from the registry.`)
+    },
+    onError: () => toast.error('Failed to purge expired stock.')
+  })
+
+  const purgeAllM = useMutation({
+    mutationFn: () => inventoryService.purgeAllStock(),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] })
+      const count = res?.deletedCount ?? res?.data?.deletedCount ?? 0
+      toast.success(`🗑️ All ${count} blood bag(s) purged from the registry.`)
+    },
+    onError: () => toast.error('Failed to purge all stock.')
+  })
+
   const rows = pickList(inventoryQ.data)
   const filteredRows = filterType === 'ALL' ? rows : rows.filter(r => (r.bloodType || r.blood_type) === filterType)
   const requests = pickList(requestsQ.data)
 
+  const getStockCount = (bt) => {
+    return rows
+      .filter(r => (r.bloodType === bt || r.blood_type === bt))
+      .reduce((acc, r) => acc + Number(r.quantity || r.units || 0), 0)
+  }
+
+  const lowStockTypes = bloodTypes.filter(bt => getStockCount(bt) <= 5)
   const today = new Date().toISOString().slice(0, 10)
 
   const getDaysRemaining = (expDate) => {
     if (!expDate) return null
     const diff = new Date(expDate) - new Date()
     return Math.ceil(diff / (1000 * 60 * 60 * 24))
-  }
-
-  const getStockCount = (bt) => {
-    return rows
-      .filter(r => (r.bloodType === bt || r.blood_type === bt))
-      .reduce((acc, r) => acc + Number(r.quantity || r.units || 0), 0)
   }
 
   return (
@@ -184,30 +215,39 @@ export default function ManageInventory() {
             { label: 'Safety Check • የደህንነት ፍተሻ', value: rows.filter(r => getDaysRemaining(r.expiryDate) <= 0).length, unit: 'Expired', sub: 'Compliance Status', color: rows.filter(r => getDaysRemaining(r.expiryDate) <= 0).length > 0 ? 'amber' : 'emerald' }
           ].map((stat, i) => (
             <div key={i} className="bg-white rounded-[2.5rem] p-8 border border-slate-200 shadow-xl hover:shadow-2xl transition-all duration-500 relative group overflow-hidden">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 relative z-10">{stat.label}</p>
-               <div className="flex items-baseline gap-2 relative z-10">
-                  <div className={clsx("text-5xl font-black tracking-tighter", 
-                    stat.color === 'brand' ? 'text-brand-600' : 
-                    stat.color === 'red' ? 'text-rose-600' : 
-                    stat.color === 'amber' ? 'text-amber-600' : 
-                    stat.color === 'emerald' ? 'text-emerald-600' : 'text-slate-900'
-                  )}>
-                    {stat.value}
-                  </div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.unit}</span>
-               </div>
-               <p className="text-[11px] font-bold text-slate-500 mt-4 relative z-10 flex items-center gap-2">
-                 <span className={clsx("w-1.5 h-1.5 rounded-full", 
-                    stat.color === 'brand' ? 'bg-brand-500' : 
-                    stat.color === 'red' ? 'bg-rose-500' : 
-                    stat.color === 'emerald' ? 'bg-emerald-500' : 'bg-slate-400'
-                 )} />
-                 {stat.sub}
-               </p>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 relative z-10">{stat.label}</p>
+              <div className="flex items-baseline gap-2 relative z-10">
+                <div className={clsx("text-5xl font-black tracking-tighter",
+                  stat.color === 'brand' ? 'text-brand-600' :
+                    stat.color === 'red' ? 'text-rose-600' :
+                      stat.color === 'amber' ? 'text-amber-600' :
+                        stat.color === 'emerald' ? 'text-emerald-600' : 'text-slate-900'
+                )}>
+                  {stat.value}
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.unit}</span>
+              </div>
+              <p className="text-[11px] font-bold text-slate-500 mt-4 relative z-10 flex items-center gap-2">
+                <span className={clsx("w-1.5 h-1.5 rounded-full",
+                  stat.color === 'brand' ? 'bg-brand-500' :
+                    stat.color === 'red' ? 'bg-rose-500' :
+                      stat.color === 'emerald' ? 'bg-emerald-500' : 'bg-slate-400'
+                )} />
+                {stat.sub}
+              </p>
             </div>
           ))}
         </div>
+
+        {lowStockTypes.length > 0 && (
+          <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900 shadow-sm">
+            <p className="font-black uppercase tracking-[0.2em] text-amber-800 mb-2">Low Stock Alert</p>
+            <p>
+              The following blood groups are at or below the safe stock threshold: <span className="font-black">{lowStockTypes.join(', ')}</span>. Please prioritize collection or dispatch planning.
+            </p>
+          </div>
+        )}
 
         {activeTab === 'inventory' ? (
           <div className="space-y-12">
@@ -284,13 +324,78 @@ export default function ManageInventory() {
                   <h3 className="text-2xl font-black text-white tracking-tighter uppercase">Master Logistics Ledger • ማስተር ደብተር</h3>
                   <p className="text-[10px] font-bold text-brand-500 uppercase tracking-[0.3em] mt-1">Live synchronized inventory registry for the Amhara Region</p>
                 </div>
-                <div className="hidden md:flex gap-4">
-                   <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[10px] font-black text-white uppercase tracking-widest">Oracle Sync Active</span>
-                   </div>
+                <div className="hidden md:flex items-center gap-4">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/10">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Oracle Sync Active</span>
+                  </div>
+                  {rows.filter(r => getDaysRemaining(r.expiryDate) <= 0).length > 0 && (
+                    <button
+                      onClick={() => {
+                        const expiredCount = rows.filter(r => getDaysRemaining(r.expiryDate) <= 0).length
+                        if (window.confirm(`⚠️ PURGE PROTOCOL\n\nThis will permanently delete all ${expiredCount} expired blood bag(s) from the registry.\n\nThis action cannot be undone. Proceed?`)) {
+                          purgeExpiredM.mutate()
+                        }
+                      }}
+                      disabled={purgeExpiredM.isPending}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-rose-900/50 transition-all disabled:opacity-50"
+                    >
+                      {purgeExpiredM.isPending ? (
+                        <><span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Purging...</>
+                      ) : (
+                        <><span>🗑️</span> Delete All Expired ({rows.filter(r => getDaysRemaining(r.expiryDate) <= 0).length})</>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
+
+              <div className="p-6 bg-slate-50 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Quick Discard by ID:</span>
+                  <input
+                    type="text"
+                    placeholder="Enter Bag ID (e.g. 546)"
+                    value={discardIdInput}
+                    onChange={(e) => setDiscardIdInput(e.target.value)}
+                    className="bg-white border-2 border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-900 focus:border-brand-500 focus:ring-0 focus:outline-none w-52 transition-all"
+                  />
+                  <button
+                    onClick={() => {
+                      if (!discardIdInput.trim()) {
+                        toast.warn('Please enter a Bag ID/number to discard');
+                        return;
+                      }
+                      if (window.confirm(`Are you sure you want to discard the blood bag matching "${discardIdInput.trim()}"?`)) {
+                        deleteStockM.mutate(discardIdInput.trim(), {
+                          onSuccess: () => setDiscardIdInput('')
+                        });
+                      }
+                    }}
+                    disabled={deleteStockM.isPending}
+                    className="px-6 py-2 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-md shadow-rose-900/10"
+                  >
+                    {deleteStockM.isPending ? 'Discarding...' : 'Discard Bag'}
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-4 w-full md:w-auto justify-end">
+                  {rows.length > 0 && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`⚠️ CRITICAL PROTOCOL\n\nThis will permanently delete ALL ${rows.length} blood bag(s) from the registry.\n\nThis action cannot be undone. Proceed?`)) {
+                          purgeAllM.mutate()
+                        }
+                      }}
+                      disabled={purgeAllM.isPending}
+                      className="px-6 py-2 bg-rose-800 hover:bg-rose-700 active:scale-95 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-md shadow-rose-950/20"
+                    >
+                      {purgeAllM.isPending ? 'Purging All...' : '🗑️ Delete All Stock'}
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
@@ -311,62 +416,92 @@ export default function ManageInventory() {
                         const qty = Number(r.quantity || 0)
                         const daysLeft = getDaysRemaining(r.expiryDate)
                         const isExpired = daysLeft < 0
-                        
+
                         return (
                           <tr key={r.id || i} className="hover:bg-slate-50 transition-all group">
                             <td className="px-10 py-10">
                               <div className="flex flex-col items-center">
                                 <span className="font-mono text-sm font-black text-slate-900 group-hover:text-brand-600 transition-colors tracking-tighter">
-                                  {String(r.id || '').slice(0, 10).toUpperCase() || 'SYS-INV-CERT'}
+                                  Bag ID: {r.bloodId || r.blood_id || `BAG-SYS-${r.id}`}
                                 </span>
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Encrypted ID</span>
+                                {r.donor ? (
+                                  <div className="flex flex-col items-center mt-1.5">
+                                    <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[8px] font-black uppercase tracking-tight">
+                                      Donor: {r.donor.name} (ID: {r.donor.donorID})
+                                    </span>
+                                    {r.donor.phone && (
+                                      <span className="text-[8px] font-mono text-slate-400 mt-0.5">{r.donor.phone}</span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                                    Batch Stock (No Donor)
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="px-10 py-10">
-                               <div className="w-16 h-16 bg-white border-4 border-slate-100 rounded-[1.5rem] flex items-center justify-center font-black text-2xl text-brand-600 mx-auto shadow-2xl shadow-slate-100 group-hover:rotate-6 transition-transform">
-                                  {r.bloodType}
-                               </div>
+                              <div className="w-16 h-16 bg-white border-4 border-slate-100 rounded-[1.5rem] flex items-center justify-center font-black text-2xl text-brand-600 mx-auto shadow-2xl shadow-slate-100 group-hover:rotate-6 transition-transform">
+                                {r.bloodType}
+                              </div>
                             </td>
                             <td className="px-10 py-10 text-center">
-                               <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{qty}</p>
-                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">Certified Units</p>
+                              <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{qty}</p>
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">Certified Units</p>
                             </td>
                             <td className="px-10 py-10">
-                               <div className="flex flex-col items-center gap-1.5 px-6 py-3 bg-slate-50 rounded-2xl border border-slate-100">
-                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Expiration Control</span>
-                                  <span className="font-mono text-xs font-black text-slate-900 uppercase">
-                                     {new Date(r.expiryDate).toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' })}
+                              <div className="flex flex-col gap-2 items-center px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                <div className="text-center">
+                                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Collection Date</span>
+                                  <span className="font-mono text-[10px] font-black text-slate-700 uppercase">
+                                    {r.collectionDate ? new Date(r.collectionDate).toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' }) : 'N/A'}
                                   </span>
-                               </div>
+                                </div>
+                                <div className="w-full border-t border-slate-200 my-0.5" />
+                                <div className="text-center">
+                                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block">Expiration Control</span>
+                                  <span className="font-mono text-[10px] font-black text-slate-800 uppercase">
+                                    {new Date(r.expiryDate).toLocaleDateString(undefined, { month: 'short', day: '2-digit', year: 'numeric' })}
+                                  </span>
+                                </div>
+                              </div>
                             </td>
                             <td className="px-10 py-10">
-                               <div className="flex flex-col items-center gap-3">
-                                  <span className={clsx(
-                                    "px-6 py-2.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl w-full text-center transition-all",
-                                    isExpired 
-                                      ? "bg-rose-600 text-white shadow-rose-200" 
-                                      : daysLeft <= 3
-                                        ? "bg-amber-600 text-white shadow-amber-200 animate-pulse"
-                                        : qty <= 10 
-                                          ? "bg-slate-900 text-white shadow-slate-200" 
-                                          : "bg-emerald-600 text-white shadow-emerald-200"
+                              <div className="flex flex-col items-center gap-3">
+                                <span className={clsx(
+                                  "px-6 py-2.5 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl w-full text-center transition-all",
+                                  isExpired
+                                    ? "bg-rose-600 text-white shadow-rose-200"
+                                    : daysLeft <= 7
+                                      ? "bg-amber-600 text-white shadow-amber-200 animate-pulse"
+                                      : "bg-emerald-600 text-white shadow-emerald-200"
+                                )}>
+                                  {isExpired ? '🚨 EXPIRED' : daysLeft <= 7 ? '⚠️ NEAR EXPIRY' : '🛡️ SAFE & ELIGIBLE'}
+                                </span>
+                                {!isExpired && (
+                                  <p className={clsx(
+                                    "text-[10px] font-black uppercase tracking-tighter",
+                                    daysLeft <= 7 ? "text-rose-500 font-black" : "text-emerald-600 font-black"
                                   )}>
-                                    {isExpired ? '🚨 DISPOSAL REQUIRED' : daysLeft <= 3 ? '⏳ URGENT DISPATCH' : qty <= 10 ? '⚠️ LOW STOCK' : '✅ OPTIMAL'}
-                                  </span>
-                                  {!isExpired && (
-                                    <p className={clsx(
-                                      "text-[10px] font-black uppercase tracking-tighter",
-                                      daysLeft <= 7 ? "text-rose-500 font-black" : "text-slate-400"
-                                    )}>
-                                      {daysLeft} Days to Safe Disposal
-                                    </p>
-                                  )}
-                               </div>
+                                    {daysLeft} Days of Safe Storage
+                                  </p>
+                                )}
+                              </div>
                             </td>
                             <td className="px-10 py-10 text-right">
-                               <button className="px-6 py-3 bg-white border-2 border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:border-brand-600 hover:text-brand-600 transition-all hover:shadow-xl shadow-slate-100">
-                                  Manage Record
-                               </button>
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={() => {
+                                    if (window.confirm('Are you sure you want to discard this blood bag from the inventory ledger? This action cannot be undone.')) {
+                                      deleteStockM.mutate(r.id);
+                                    }
+                                  }}
+                                  disabled={deleteStockM.isPending}
+                                  className="px-4 py-2 bg-rose-50 border-2 border-rose-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-rose-600 hover:bg-rose-600 hover:text-white transition-all hover:shadow-xl shadow-rose-100 disabled:opacity-50"
+                                >
+                                  {deleteStockM.isPending && deleteStockM.variables === r.id ? 'Disposing...' : 'Discard Bag'}
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         )
@@ -392,11 +527,11 @@ export default function ManageInventory() {
                   enableReinitialize
                   initialValues={dispatchDefaults}
                   onSubmit={(values, { resetForm }) => {
-                    manualDispatchM.mutate(values, { 
+                    manualDispatchM.mutate(values, {
                       onSuccess: () => {
                         resetForm()
                         setDispatchDefaults({ hospitalId: '', bloodType: 'O+', units: 1, requestId: '' })
-                      } 
+                      }
                     })
                   }}
                 >
@@ -439,7 +574,7 @@ export default function ManageInventory() {
                           <Field name="units" type="number" min={1} className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-4 text-xs focus:border-brand-500 focus:ring-0 outline-none font-black text-slate-900 text-center transition-all" />
                         </div>
                         <button type="submit" disabled={manualDispatchM.isPending} className="bg-brand-600 text-white px-10 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-2xl shadow-brand-200 hover:bg-brand-700 active:scale-95 transition-all self-end h-[56px] flex items-center justify-center gap-3">
-                           {manualDispatchM.isPending ? '⏳ processing...' : '🚀 EXECUTE DISPATCH'}
+                          {manualDispatchM.isPending ? '⏳ processing...' : '🚀 EXECUTE DISPATCH'}
                         </button>
                       </div>
                     </Form>
@@ -452,13 +587,13 @@ export default function ManageInventory() {
             <div className="grid grid-cols-1 gap-12">
               {requestsQ.isLoading ? (
                 <div className="bg-white p-32 rounded-[3rem] border border-slate-200 text-center space-y-6">
-                   <div className="w-16 h-16 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto shadow-2xl shadow-brand-100" />
-                   <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">POLLING REGIONAL LOGISTICS NETWORK...</p>
+                  <div className="w-16 h-16 border-4 border-brand-600 border-t-transparent rounded-full animate-spin mx-auto shadow-2xl shadow-brand-100" />
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em]">POLLING REGIONAL LOGISTICS NETWORK...</p>
                 </div>
               ) : requests.length === 0 ? (
                 <div className="bg-white p-32 rounded-[3rem] border-2 border-dashed border-slate-200 text-center">
-                   <div className="text-7xl mb-8 opacity-10">🕊️</div>
-                   <p className="text-xs font-black text-slate-300 uppercase tracking-[0.4em]">NO ACTIVE HOSPITAL REQUIREMENTS RECORDED</p>
+                  <div className="text-7xl mb-8 opacity-10">🕊️</div>
+                  <p className="text-xs font-black text-slate-300 uppercase tracking-[0.4em]">NO ACTIVE HOSPITAL REQUIREMENTS RECORDED</p>
                 </div>
               ) : (
                 Object.entries(
@@ -473,18 +608,18 @@ export default function ManageInventory() {
                     <div className="bg-slate-900 border-b border-white/5 p-10 flex justify-between items-center group-hover:bg-black transition-colors duration-500">
                       <div>
                         <div className="flex items-center gap-4 mb-2">
-                           <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-xl shadow-brand-500/20">H</div>
-                           <h4 className="text-2xl font-black text-white tracking-tighter uppercase">{hospitalName}</h4>
+                          <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-xl shadow-brand-500/20">H</div>
+                          <h4 className="text-2xl font-black text-white tracking-tighter uppercase">{hospitalName}</h4>
                         </div>
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-14">
-                           {hospitalRequests.length} Requirements Registered • Regional Priority System
+                          {hospitalRequests.length} Requirements Registered • Regional Priority System
                         </p>
                       </div>
                       <div className="flex gap-4">
-                         <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 text-center backdrop-blur-xl">
-                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Network Status</p>
-                            <p className="text-xs font-black text-emerald-500 uppercase mt-1">CONNECTED</p>
-                         </div>
+                        <div className="bg-white/5 px-6 py-3 rounded-2xl border border-white/10 text-center backdrop-blur-xl">
+                          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Network Status</p>
+                          <p className="text-xs font-black text-emerald-500 uppercase mt-1">CONNECTED</p>
+                        </div>
                       </div>
                     </div>
 
@@ -503,8 +638,8 @@ export default function ManageInventory() {
                               {/* Request Metadata */}
                               <div className="flex-1 min-w-[250px]">
                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 mb-4">
-                                   <span className={clsx("w-2 h-2 rounded-full animate-pulse", r.urgencyLevel === 'high' ? 'bg-rose-500' : 'bg-slate-400')} />
-                                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">{r.urgencyLevel} PRIORITY REQUIREMENT</span>
+                                  <span className={clsx("w-2 h-2 rounded-full animate-pulse", r.urgencyLevel === 'high' ? 'bg-rose-500' : 'bg-slate-400')} />
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">{r.urgencyLevel} PRIORITY REQUIREMENT</span>
                                 </div>
                                 <h5 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none mb-2">{r.patientName}</h5>
                                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">Transaction Trace: #{r.id.toString().slice(-8).toUpperCase()}</p>
@@ -522,7 +657,7 @@ export default function ManageInventory() {
                                     "text-3xl font-black tracking-tighter leading-none mb-2",
                                     hasStock ? "text-emerald-600" : "text-rose-600"
                                   )}>
-                                    {stockCount} 
+                                    {stockCount}
                                     {hasStock && isPending && (
                                       <span className="text-slate-300 mx-2 tracking-normal">→</span>
                                     )}
