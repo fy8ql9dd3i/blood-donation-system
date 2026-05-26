@@ -1,7 +1,7 @@
 /**
- * Hospital staff endpoints (blood requests + hospital profile + map helpers).
+ * Hospital staff endpoints (blood requests + hospital profile).
  * In pages, wrap these with `useQuery` / `useMutation` from TanStack Query so results are cached
- * and refetched intelligently (see ViewAvailability.jsx for two parallel queries).
+ * and refetched intelligently.
  */
 import api from './api'
 
@@ -23,14 +23,6 @@ export async function submitBloodRequest(payload) {
   return data
 }
 
-/**
- * GET /api/map/donor-locations — donors that have latitude/longitude (from registration geocoding).
- * Allowed roles: hospital_staff, blood_bank_staff, admin. Used on the availability map.
- */
-export async function getDonorLocationsForMap() {
-  const { data } = await api.get('/map/donor-locations')
-  return data
-}
 export async function listPublicHospitals() {
   const { data } = await api.get('/hospitals/public-list')
   return data

@@ -6,6 +6,7 @@ class NotificationModel {
   final DateTime createdAt;
   final bool read;
   final String response;
+  final String type;
 
   NotificationModel({
     required this.id,
@@ -15,6 +16,7 @@ class NotificationModel {
     required this.createdAt,
     required this.read,
     required this.response,
+    required this.type,
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class NotificationModel {
       createdAt: DateTime.parse(json['createdAt']),
       read: json['read'] ?? false,
       response: json['response'] ?? 'NO_RESPONSE',
+      type: json['type'] ?? 'GENERAL',
     );
   }
 }

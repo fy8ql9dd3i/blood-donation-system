@@ -6,7 +6,8 @@ import '../../../core/models/notification_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
 
 class NotificationScreen extends StatefulWidget {
-  const NotificationScreen({super.key});
+  final bool filterEmergency;
+  const NotificationScreen({super.key, this.filterEmergency = false});
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();
@@ -88,11 +89,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.notifications_rounded, color: Colors.red, size: 22),
-            SizedBox(width: 10),
-            Text('Notifications', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black87)),
+            const Icon(Icons.notifications_rounded, color: Colors.red, size: 22),
+            const SizedBox(width: 10),
+            Text(widget.filterEmergency ? 'Emergency Alerts' : 'Notifications', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black87)),
           ],
         ),
         actions: [
@@ -132,7 +133,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
             );
           }
 
-          final all = snapshot.data ?? [];
+          var all = snapshot.data ?? [];
+
+          if (widget.filterEmergency) {
+            all = all.where((n) {
+              final t = (n.title ?? '').toLowerCase();
+              return t.contains('urgent') || t.contains('emergency') || t.contains('critical');
+            }).toList();
+          }
 
           if (all.isEmpty) {
             return RefreshIndicator(

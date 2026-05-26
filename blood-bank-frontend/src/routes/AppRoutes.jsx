@@ -10,13 +10,14 @@ import { toast } from 'react-toastify'
 import { useAuth } from '../context/AuthContext'
 import Login from '../pages/auth/Login'
 import RegisterHospital from '../pages/RegisterHospital'
-import MobileRegistration from '../pages/MobileRegistration'
+
 
 
 import HospitalDashboard from '../pages/hospital/Dashboard'
 import RequestBlood from '../pages/hospital/RequestBlood'
 import TrackRequest from '../pages/hospital/TrackRequest'
-import ViewAvailability from '../pages/hospital/ViewAvailability'
+import HospitalAvailability from '../pages/hospital/Availability'
+
 
 import BloodBankDashboard from '../pages/bloodBank/dashboard/Dashboard'
 import ManageInventory from '../pages/bloodBank/inventory/ManageInventory'
@@ -67,43 +68,43 @@ function AppShell({ title, links }) {
     <div className="min-h-screen flex flex-col">
       <NewsTicker />
       <div className="flex-1 lg:flex bg-slate-50">
-      <aside className="border-b border-slate-200 bg-white lg:w-64 lg:border-b-0 lg:border-r lg:shrink-0">
-        <div className="flex items-center justify-between gap-2 px-4 py-4 lg:flex-col lg:items-stretch">
-          <div className="lg:mb-6">
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
-              Blood portal
-            </p>
-            <p className="text-lg font-bold text-slate-900">{title}</p>
-            <p className="truncate text-xs text-slate-500 capitalize">
-              {user?.role?.replace(/_/g, ' ')}
-            </p>
+        <aside className="border-b border-slate-200 bg-white lg:w-64 lg:border-b-0 lg:border-r lg:shrink-0">
+          <div className="flex items-center justify-between gap-2 px-4 py-4 lg:flex-col lg:items-stretch">
+            <div className="lg:mb-6">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">
+                Blood portal
+              </p>
+              <p className="text-lg font-bold text-slate-900">{title}</p>
+              <p className="truncate text-xs text-slate-500 capitalize">
+                {user?.role?.replace(/_/g, ' ')}
+              </p>
+            </div>
+            <nav className="hidden gap-1 lg:flex lg:flex-col">
+              {links.map((l) => (
+                <NavLink key={l.to} to={l.to} className={linkClass} end={l.end}>
+                  {l.label}
+                </NavLink>
+              ))}
+            </nav>
+            <button
+              type="button"
+              onClick={logout}
+              className="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Sign out
+            </button>
           </div>
-          <nav className="hidden gap-1 lg:flex lg:flex-col">
+          <nav className="flex gap-1 overflow-x-auto border-t border-slate-100 px-2 py-2 lg:hidden">
             {links.map((l) => (
               <NavLink key={l.to} to={l.to} className={linkClass} end={l.end}>
                 {l.label}
               </NavLink>
             ))}
           </nav>
-          <button
-            type="button"
-            onClick={logout}
-            className="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Sign out
-          </button>
-        </div>
-        <nav className="flex gap-1 overflow-x-auto border-t border-slate-100 px-2 py-2 lg:hidden">
-          {links.map((l) => (
-            <NavLink key={l.to} to={l.to} className={linkClass} end={l.end}>
-              {l.label}
-            </NavLink>
-          ))}
-        </nav>
-      </aside>
-      <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
-        <Outlet />
-      </main>
+        </aside>
+        <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+          <Outlet />
+        </main>
       </div>
     </div>
   )
@@ -112,11 +113,11 @@ function AppShell({ title, links }) {
 function PublicLayout() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
-  
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <NewsTicker />
-      
+
       {/* 🏛️ Best-in-Class Header */}
       <header className="glass-header sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
@@ -127,12 +128,12 @@ function PublicLayout() {
               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-brand-500">Bahir Dar Center</span>
             </div>
           </div>
-          
+
           <nav className="hidden md:flex items-center gap-10">
             {['Services', 'About', 'Contact', 'Emergency'].map((item) => (
-              <NavLink 
+              <NavLink
                 key={item}
-                to={`/${item.toLowerCase()}`} 
+                to={`/${item.toLowerCase()}`}
                 className={({ isActive }) => clsx(
                   "text-[11px] font-black uppercase tracking-widest transition-all hover:text-brand-600",
                   isActive ? "text-brand-600" : "text-slate-400"
@@ -141,19 +142,19 @@ function PublicLayout() {
                 {item}
               </NavLink>
             ))}
-            
+
             {isAuthenticated ? (
               <button onClick={() => navigate('/')} className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest px-8 py-3 rounded-full shadow-2xl shadow-slate-200 transition-all hover:bg-black active:scale-95">
                 Go to Dashboard
               </button>
             ) : (
-              <button 
+              <button
                 onClick={() => {
                   if (window.location.pathname !== '/') {
                     navigate('/');
                   }
                   setTimeout(() => document.getElementById('login-section')?.scrollIntoView({ behavior: 'smooth' }), 100);
-                }} 
+                }}
                 className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest px-8 py-3 rounded-full shadow-2xl shadow-slate-200 transition-all hover:bg-black active:scale-95"
               >
                 Staff Portal
@@ -166,11 +167,11 @@ function PublicLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      
+
       {/* 🗺️ Best-in-Class Footer */}
       <footer className="bg-slate-900 pt-24 pb-12 overflow-hidden relative">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        
+
         <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-4 gap-16 relative z-10">
           <div className="col-span-1 md:col-span-1 space-y-6">
             <div className="flex items-center gap-2">
@@ -187,26 +188,26 @@ function PublicLayout() {
               <a href="https://linkedin.com/company/bahirdarbloodbank" target="_blank" rel="noreferrer" className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-white hover:bg-[#0A66C2] transition-colors cursor-pointer" title="LinkedIn">LI</a>
             </div>
             <div className="pt-6 space-y-4">
-               <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Donor Mobile App</h4>
-               <div className="flex flex-wrap gap-3">
-                  <a href="#" className="bg-black border border-white/20 rounded-lg px-4 py-1.5 flex items-center gap-2 hover:bg-slate-800 transition-colors group">
-                     <div className="text-xl">🤖</div>
-                     <div className="flex flex-col">
-                        <span className="text-[8px] text-slate-400 leading-none uppercase">Get it on</span>
-                        <span className="text-sm text-white font-bold leading-none">Google Play</span>
-                     </div>
-                  </a>
-                  <a href="#" className="bg-black border border-white/20 rounded-lg px-4 py-1.5 flex items-center gap-2 hover:bg-slate-800 transition-colors group">
-                     <div className="text-xl">🍎</div>
-                     <div className="flex flex-col">
-                        <span className="text-[8px] text-slate-400 leading-none uppercase">Download on</span>
-                        <span className="text-sm text-white font-bold leading-none">App Store</span>
-                     </div>
-                  </a>
-               </div>
+              <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Donor Mobile App</h4>
+              <div className="flex flex-wrap gap-3">
+                <a href="#" className="bg-black border border-white/20 rounded-lg px-4 py-1.5 flex items-center gap-2 hover:bg-slate-800 transition-colors group">
+                  <div className="text-xl">🤖</div>
+                  <div className="flex flex-col">
+                    <span className="text-[8px] text-slate-400 leading-none uppercase">Get it on</span>
+                    <span className="text-sm text-white font-bold leading-none">Google Play</span>
+                  </div>
+                </a>
+                <a href="#" className="bg-black border border-white/20 rounded-lg px-4 py-1.5 flex items-center gap-2 hover:bg-slate-800 transition-colors group">
+                  <div className="text-xl">🍎</div>
+                  <div className="flex flex-col">
+                    <span className="text-[8px] text-slate-400 leading-none uppercase">Download on</span>
+                    <span className="text-sm text-white font-bold leading-none">App Store</span>
+                  </div>
+                </a>
+              </div>
             </div>
           </div>
-          
+
           <div className="space-y-6">
             <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Quick Links</h4>
             <ul className="space-y-4">
@@ -230,7 +231,7 @@ function PublicLayout() {
             <div className="space-y-4">
               <div className="flex items-start gap-4">
                 <span className="text-brand-500">📍</span>
-                <p className="text-sm text-slate-300">Bahir Dar, Amhara Region<br/>Near Felege Hiwot Hospital</p>
+                <p className="text-sm text-slate-300">Bahir Dar, Amhara Region<br />Near Felege Hiwot Hospital</p>
               </div>
               <div className="flex items-start gap-4">
                 <span className="text-brand-500">📞</span>
@@ -249,9 +250,9 @@ function PublicLayout() {
             © 2026 BAHIR DAR DISTRICT BLOOD BANK • ALL RIGHTS RESERVED
           </p>
           <div className="flex items-center gap-3">
-             <span className="text-[10px] font-black text-slate-500 uppercase">Bilingual Support:</span>
-             <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black text-white">ENGLISH</span>
-             <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black text-white">አማርኛ</span>
+            <span className="text-[10px] font-black text-slate-500 uppercase">Bilingual Support:</span>
+            <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black text-white">ENGLISH</span>
+            <span className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-black text-white">አማርኛ</span>
           </div>
         </div>
       </footer>
@@ -268,7 +269,6 @@ function HospitalLayout() {
         { to: '/hospital/request-blood', label: 'Request blood' },
         { to: '/hospital/track', label: 'Track' },
         { to: '/hospital/availability', label: 'Availability' },
-        { to: '/hospital/emergency', label: '🚨 Emergency Alert' },
       ]}
     />
   )
@@ -329,7 +329,7 @@ export default function AppRoutes() {
     if (user && (user.role === 'admin' || user.role === 'blood_bank_staff')) {
       // Connect to socket on the same host as the API
       const socket = io(`http://${window.location.hostname}:5000`)
-      
+
       socket.on('new_appreciation', (data) => {
         toast.info(
           <div className="flex flex-col gap-1">
@@ -337,10 +337,51 @@ export default function AppRoutes() {
             <p className="font-bold text-slate-800">{data.hospitalName} sent a success story: "{data.patientContext}"</p>
             <p className="text-[10px] text-slate-500 line-clamp-1 italic">"{data.message}"</p>
           </div>,
-          { 
-            autoClose: 10000, 
+          {
+            autoClose: 10000,
             position: 'top-right',
             onClick: () => navigate(user.role === 'admin' ? '/admin/appreciation' : '/blood-bank/appreciation')
+          }
+        )
+      })
+
+      socket.on('emergency_blood_request', (data) => {
+        toast.error(
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 animate-pulse">
+              <span className="h-2 w-2 rounded-full bg-rose-600"></span>
+              <p className="font-black text-xs uppercase tracking-widest text-rose-600">🚨 Emergency Blood Request!</p>
+            </div>
+            <p className="font-bold text-slate-900 text-sm">
+              {data.hospitalName} needs {data.unitsRequired} units of {data.bloodType}!
+            </p>
+            <p className="text-[10px] text-slate-500 italic">
+              Patient: {data.patientName || "Emergency"} • Urgency: <span className="font-bold text-rose-600 uppercase">{data.urgencyLevel}</span>
+            </p>
+          </div>,
+          {
+            autoClose: 15000,
+            position: 'top-right',
+            onClick: () => navigate(user.role === 'admin' ? '/admin/dashboard' : '/blood-bank/dashboard')
+          }
+        )
+      })
+
+      socket.on('inventory_alert', (data) => {
+        toast.warning(
+          <div className="flex flex-col gap-1">
+            <p className="font-black text-xs uppercase tracking-widest text-amber-600">⚠️ Low Stock Warning!</p>
+            <p className="font-bold text-slate-900 text-sm">
+              Blood Type {data.bloodType} is critically low!
+            </p>
+            <p className="text-xs text-slate-700">
+              Only {data.quantity} units remaining.
+            </p>
+          </div>,
+          {
+            autoClose: 12000,
+            position: 'top-right',
+            onClick: () => navigate(user.role === 'admin' ? '/admin/dashboard' : '/blood-bank/inventory')
           }
         )
       })
@@ -352,8 +393,8 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/register" element={<Navigate to="/login" replace />} />
-      <Route path="/donor-registration" element={<MobileRegistration />} />
-      
+      <Route path="/donor-registration" element={<Navigate to="/" replace />} />
+
       <Route element={<PublicLayout />}>
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Landing />} />
@@ -370,8 +411,8 @@ export default function AppRoutes() {
           <Route path="dashboard" element={<HospitalDashboard />} />
           <Route path="request-blood" element={<RequestBlood />} />
           <Route path="track" element={<TrackRequest />} />
-          <Route path="availability" element={<ViewAvailability />} />
-          <Route path="emergency" element={<EmergencyAlerts />} />
+          <Route path="availability" element={<HospitalAvailability />} />
+
         </Route>
       </Route>
 

@@ -68,7 +68,8 @@ export default function ExportExcel() {
     queryKey: ['donors', 'list'],
     queryFn: async () => { const { data } = await api.get('/donors'); return data },
   })
-  const donors = pickDonors(donorsQ.data)
+  const allDonors = pickDonors(donorsQ.data)
+  const donors = allDonors.filter(d => d.status === 'approved')
 
   const filteredDonors = donors.filter((d) => {
     const name = String(d.name || '').toLowerCase()

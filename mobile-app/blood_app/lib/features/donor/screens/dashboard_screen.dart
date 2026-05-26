@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'dart:async';
 import '../data/donor_repository.dart';
 import '../data/notification_repository.dart';
+import '../data/donor_service.dart';
+import '../data/news_service.dart';
 import '../../../core/models/donor_model.dart';
 import '../../../core/models/notification_model.dart';
 import '../../../shared/widgets/loading_widget.dart';
@@ -20,19 +23,203 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   late Future<DonorModel> _profileFuture;
   late Future<List<NotificationModel>> _notifFuture;
+  late Future<List<dynamic>> _newsFuture;
+  final NewsService _newsService = NewsService();
+
+  Timer? _pollingTimer;
+  final Set<String> _alertedNotifications = {};
+  int _cachedNotificationsCount = 0;
 
   @override
   void initState() {
     super.initState();
     _profileFuture = context.read<DonorRepository>().getProfile();
     _notifFuture = context.read<NotificationRepository>().getNotifications();
+    _newsFuture = _newsService.fetchNews(context.locale.languageCode);
+
+    // Track initial notifications list to avoid double prompting existing unread items on startup
+    _notifFuture.then((list) {
+      _cachedNotificationsCount = list.length;
+      for (var n in list) {
+        if (n.read) {
+          _alertedNotifications.add(n.id);
+        }
+      }
+    }).catchError((_) {});
+
+    // Start background polling every 10 seconds
+    _pollingTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      _checkNewNotifications();
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
   }
 
   void _refreshAll() {
     setState(() {
       _profileFuture = context.read<DonorRepository>().getProfile();
       _notifFuture = context.read<NotificationRepository>().getNotifications();
+      _newsFuture = _newsService.fetchNews(context.locale.languageCode);
     });
+  }
+
+  void _checkNewNotifications() {
+    context.read<NotificationRepository>().getNotifications().then((list) {
+      if (!mounted) return;
+      final unreadEmergencies = list.where((n) {
+        if (n.read) return false;
+        final t = n.title.toLowerCase();
+        final m = n.message.toLowerCase();
+        return n.type == 'EMERGENCY' || t.contains('urgent') || t.contains('emergency') || m.contains('urgent');
+      }).toList();
+
+      bool hasNew = false;
+      for (var n in unreadEmergencies) {
+        if (!_alertedNotifications.contains(n.id)) {
+          _alertedNotifications.add(n.id);
+          hasNew = true;
+          _showEmergencyDialog(n);
+        }
+      }
+
+      if (hasNew || list.length != _cachedNotificationsCount) {
+        setState(() {
+          _cachedNotificationsCount = list.length;
+          _notifFuture = Future.value(list);
+        });
+      }
+    }).catchError((err) {
+      debugPrint('Polling error: $err');
+    });
+  }
+
+  Future<void> _handleResponse(String notificationId, String status) async {
+    final success = await DonorService.respondNotification(
+      notificationId: notificationId,
+      responseStatus: status,
+    );
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(status == 'ACCEPTED' ? 'Request Accepted ❤️' : 'Request Declined'),
+          backgroundColor: status == 'ACCEPTED' ? Colors.green.shade600 : Colors.red.shade600,
+        ),
+      );
+      _refreshAll();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to update response'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showEmergencyDialog(NotificationModel n) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        elevation: 16,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: Colors.red.shade100, width: 2),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.red.shade100, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withOpacity(0.2),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.red,
+                  size: 38,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                n.title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                n.message,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _handleResponse(n.id, 'DECLINED');
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: BorderSide(color: Colors.red.shade200, width: 1.5),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text('Decline', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _handleResponse(n.id, 'ACCEPTED');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade600,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 2,
+                      ),
+                      child: const Text('Accept ❤️', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showLanguageSelector(BuildContext context) {
@@ -48,7 +235,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
                 color: Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(4),
@@ -127,7 +315,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     children: [
                       // Logo mark
                       Container(
-                        width: 38, height: 38,
+                        width: 38,
+                        height: 38,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [Color(0xFF8B0000), Color(0xFFC0152B)],
@@ -143,7 +332,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.water_drop_rounded, color: Colors.white, size: 20),
+                        child: const Icon(Icons.water_drop_rounded,
+                            color: Colors.white, size: 20),
                       ),
                       const SizedBox(width: 10),
                       Column(
@@ -179,10 +369,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         border: Border.all(color: const Color(0xFFFFD5D5)),
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.language_rounded, color: AppColors.textSecondary, size: 20),
+                        icon: const Icon(Icons.language_rounded,
+                            color: AppColors.textSecondary, size: 20),
                         onPressed: () => _showLanguageSelector(context),
                         padding: const EdgeInsets.all(8),
-                        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                        constraints:
+                            const BoxConstraints(minWidth: 40, minHeight: 40),
                       ),
                     ),
                   ],
@@ -205,7 +397,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'Hello, ${donor.name.split(' ')[0]}! 👋',
@@ -230,15 +423,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   // Blood type chip
                                   if (donor.bloodType != null)
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14, vertical: 8),
                                       decoration: BoxDecoration(
                                         color: AppColors.bgSubtle,
                                         borderRadius: BorderRadius.circular(14),
-                                        border: Border.all(color: const Color(0xFFFFD5D5), width: 1.5),
+                                        border: Border.all(
+                                            color: const Color(0xFFFFD5D5),
+                                            width: 1.5),
                                       ),
                                       child: Column(
                                         children: [
-                                          const Icon(Icons.water_drop_rounded, color: AppColors.primary, size: 16),
+                                          const Icon(Icons.water_drop_rounded,
+                                              color: AppColors.primary,
+                                              size: 16),
                                           const SizedBox(height: 2),
                                           Text(
                                             donor.bloodType!,
@@ -269,6 +467,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                       // ══════════ ALERTS PREVIEW ══════════
                       _buildAlertsPreview(context),
+
+                      const SizedBox(height: 28),
+
+                      // ══════════ NEWS & ANNOUNCEMENTS PREVIEW ══════════
+                      _buildNewsPreview(context),
 
                       const SizedBox(height: 28),
 
@@ -326,9 +529,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             _statDivider(),
             _statItem(
-              eligible ? 'Ready' : (daysLeft != null && daysLeft > 0 ? '${daysLeft}d' : 'Check'),
+              eligible
+                  ? 'Ready'
+                  : (daysLeft != null && daysLeft > 0
+                      ? '${daysLeft}d'
+                      : 'Check'),
               'Status',
-              eligible ? Icons.check_circle_rounded : Icons.hourglass_bottom_rounded,
+              eligible
+                  ? Icons.check_circle_rounded
+                  : Icons.hourglass_bottom_rounded,
               eligible ? AppColors.success : AppColors.warning,
             ),
             _statDivider(),
@@ -349,7 +558,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 44, height: 44,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(14),
@@ -380,15 +590,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _statDivider() => Container(
-    width: 1, height: 52,
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [Colors.transparent, const Color(0xFFFFD5D5), Colors.transparent],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      ),
-    ),
-  );
+        width: 1,
+        height: 52,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.transparent,
+              const Color(0xFFFFD5D5),
+              Colors.transparent
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+      );
 
   // ─────────────────────────────────────────────────────────────────────
   // ALERTS PREVIEW
@@ -411,12 +626,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Row(
                     children: [
                       Container(
-                        width: 32, height: 32,
+                        width: 32,
+                        height: 32,
                         decoration: BoxDecoration(
                           color: AppColors.bgSubtle,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.campaign_rounded, color: AppColors.primary, size: 18),
+                        child: const Icon(Icons.campaign_rounded,
+                            color: AppColors.primary, size: 18),
                       ),
                       const SizedBox(width: 10),
                       const Text(
@@ -430,7 +647,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       if (unread.isNotEmpty) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
                             color: AppColors.primary,
                             borderRadius: BorderRadius.circular(20),
@@ -456,7 +674,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('View All', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                        Text('View All',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 12)),
                         SizedBox(width: 2),
                         Icon(Icons.chevron_right_rounded, size: 16),
                       ],
@@ -485,11 +705,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.notifications_off_outlined, color: Colors.grey.shade300, size: 28),
+                      Icon(Icons.notifications_off_outlined,
+                          color: Colors.grey.shade300, size: 28),
                       const SizedBox(width: 14),
                       Text(
                         'No staff alerts at this time.',
-                        style: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                        style: TextStyle(
+                            color: Colors.grey.shade400, fontSize: 13),
                       ),
                     ],
                   ),
@@ -521,7 +743,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         border: Border.all(
           color: isRead
               ? const Color(0xFFF0E5E5)
-              : (isEmergency ? const Color(0xFFFFCCCC) : const Color(0xFFFFD5D5)),
+              : (isEmergency
+                  ? const Color(0xFFFFCCCC)
+                  : const Color(0xFFFFD5D5)),
           width: 1.2,
         ),
         boxShadow: [
@@ -536,7 +760,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 40, height: 40,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: isEmergency
                   ? AppColors.primary.withOpacity(0.12)
@@ -569,14 +794,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   n.message ?? '',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),
           ),
           if (!isRead)
             Container(
-              width: 8, height: 8,
+              width: 8,
+              height: 8,
               margin: const EdgeInsets.only(top: 4),
               decoration: const BoxDecoration(
                 color: AppColors.primary,
@@ -589,14 +816,195 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   // ─────────────────────────────────────────────────────────────────────
+  // NEWS & ANNOUNCEMENTS PREVIEW
+  // ─────────────────────────────────────────────────────────────────────
+  Widget _buildNewsPreview(BuildContext context) {
+    return FutureBuilder<List<dynamic>>(
+      future: _newsFuture,
+      builder: (context, snapshot) {
+        final newsList = snapshot.data ?? [];
+        if (newsList.isEmpty && snapshot.connectionState != ConnectionState.waiting) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.campaign_rounded,
+                            color: Colors.orange, size: 18),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Announcements & News',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // Navigate to News Screen, typically handled via Bottom Navigation (index 2)
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.orange,
+                      padding: EdgeInsets.zero,
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('View All',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 12)),
+                        SizedBox(width: 2),
+                        Icon(Icons.chevron_right_rounded, size: 16),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (snapshot.connectionState == ConnectionState.waiting)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(
+                      color: Colors.orange,
+                      strokeWidth: 2.5,
+                    ),
+                  ),
+                )
+              else
+                ...newsList.take(2).map((n) => _newsCard(n)).toList(),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _newsCard(dynamic news) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFF0E5E5), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.025),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.newspaper_rounded, color: Colors.orange, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  news['title'] ?? 'News',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  news['content'] ?? '',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
   // QUICK ACTIONS
   // ─────────────────────────────────────────────────────────────────────
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
-      {'icon': Icons.history_rounded,             'label': 'History',       'color': AppColors.info,    'bg': const Color(0xFFEFF5FF), 'route': '/history'},
-      {'icon': Icons.location_on_rounded,          'label': 'Find Center',  'color': AppColors.success, 'bg': const Color(0xFFEFFAF6), 'route': '/map'},
-      {'icon': Icons.notifications_active_rounded, 'label': 'Alerts',       'color': AppColors.warning, 'bg': const Color(0xFFFFF8EC), 'route': '/notifications'},
-      {'icon': Icons.favorite_rounded,             'label': 'Hero Letters', 'color': AppColors.accent,  'bg': const Color(0xFFFFF0F0), 'route': '/appreciation'},
+      {
+        'icon': Icons.history_rounded,
+        'label': 'History',
+        'color': AppColors.info,
+        'bg': const Color(0xFFEFF5FF),
+        'route': '/history'
+      },
+      {
+        'icon': Icons.location_on_rounded,
+        'label': 'Find Center',
+        'color': AppColors.success,
+        'bg': const Color(0xFFEFFAF6),
+        'route': '/map'
+      },
+      {
+        'icon': Icons.notifications_active_rounded,
+        'label': 'Alerts',
+        'color': AppColors.warning,
+        'bg': const Color(0xFFFFF8EC),
+        'route': '/notifications'
+      },
+      {
+        'icon': Icons.emergency_rounded,
+        'label': 'Emergency',
+        'color': const Color(0xFFD32F2F),
+        'bg': const Color(0xFFFFEBEE),
+        'route': '/emergency'
+      },
+      {
+        'icon': Icons.favorite_rounded,
+        'label': 'Hero Letters',
+        'color': AppColors.accent,
+        'bg': const Color(0xFFFFF0F0),
+        'route': '/appreciation'
+      },
+      {
+        'icon': Icons.info_rounded,
+        'label': 'About Us',
+        'color': Colors.blue,
+        'bg': Colors.blue.shade50,
+        'route': '/about'
+      },
     ];
 
     return Padding(
@@ -614,20 +1022,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: actions.map((a) {
               final color = a['color'] as Color;
               final bg = a['bg'] as Color;
-              return Expanded(
+              return SizedBox(
+                width: (MediaQuery.of(context).size.width - 22 * 2 - 24) / 2,
                 child: GestureDetector(
-                  onTap: () => Navigator.pushNamed(context, a['route'] as String),
+                  onTap: () =>
+                      Navigator.pushNamed(context, a['route'] as String),
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 4),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 18, horizontal: 4),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFF5E5E5), width: 1),
+                      border:
+                          Border.all(color: const Color(0xFFF5E5E5), width: 1),
                       boxShadow: [
                         BoxShadow(
                           color: color.withOpacity(0.08),
@@ -640,12 +1053,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 44, height: 44,
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
                             color: bg,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: Icon(a['icon'] as IconData, color: color, size: 22),
+                          child: Icon(a['icon'] as IconData,
+                              color: color, size: 22),
                         ),
                         const SizedBox(height: 10),
                         Text(
@@ -671,6 +1086,133 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildActiveEmergencyBanner(BuildContext context) {
+    return FutureBuilder<List<NotificationModel>>(
+      future: _notifFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox.shrink();
+        final list = snapshot.data!;
+        final activeEmergencies = list.where((n) {
+          if (n.read) return false;
+          final t = n.title.toLowerCase();
+          final m = n.message.toLowerCase();
+          return n.type == 'EMERGENCY' || t.contains('urgent') || t.contains('emergency') || m.contains('urgent');
+        }).toList();
+
+        if (activeEmergencies.isEmpty) return const SizedBox.shrink();
+
+        final alert = activeEmergencies.first;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE52020), Color(0xFFB01212)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.red.withOpacity(0.35),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.white,
+                    size: 26,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'CRITICAL ALERT NEEDED!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 13,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        alert.message,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.92),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          height: 1.4,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              DefaultTabController.of(context).animateTo(2);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: AppColors.primary,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              minimumSize: Size.zero,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Text(
+                              'RESPOND NOW',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          TextButton(
+                            onPressed: () => _handleResponse(alert.id, 'DECLINED'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text(
+                              'Dismiss',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // ─────────────────────────────────────────────────────────────────────
   // ERROR STATE
   // ─────────────────────────────────────────────────────────────────────
@@ -685,19 +1227,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80, height: 80,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 color: AppColors.bgSubtle,
                 shape: BoxShape.circle,
                 border: Border.all(color: const Color(0xFFFFD5D5), width: 2),
               ),
-              child: const Icon(Icons.wifi_off_rounded, size: 40, color: AppColors.primary),
+              child: const Icon(Icons.wifi_off_rounded,
+                  size: 40, color: AppColors.primary),
             ),
             const SizedBox(height: 20),
             Text(
               msg,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15, color: AppColors.textSecondary),
+              style:
+                  const TextStyle(fontSize: 15, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 28),
             ElevatedButton.icon(
@@ -707,8 +1252,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
               ),
             ),
           ],

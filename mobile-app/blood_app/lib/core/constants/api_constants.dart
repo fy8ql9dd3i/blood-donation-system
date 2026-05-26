@@ -7,8 +7,8 @@ class ApiConstants {
   // 2️⃣ For Android Emulator:
   // static const String baseUrl = 'http://10.0.2.2:5000/api'; 
 
-  // 3️⃣ For Physical Mobile Device (must be on same Wi-Fi as your PC):
-  static const String baseUrl = 'http://10.170.65.40:5000/api';
+  // 3️⃣ For Physical Mobile Device or LAN access:
+  static const String baseUrl = 'http://10.196.242.198:5000/api';
 
   // Donor
   static const String registerDonor = '/auth/register-donor';
