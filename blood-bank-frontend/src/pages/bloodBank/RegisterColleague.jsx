@@ -37,6 +37,7 @@ export default function RegisterColleague() {
 
   return (
     <div className="mx-auto max-w-lg space-y-6">
+
       <Link
         to={backTo}
         className="text-sm font-medium text-brand-600 hover:text-brand-700"

@@ -288,6 +288,7 @@ function BloodBankLayout() {
         { to: '/blood-bank/emergency', label: '🚨 Emergency Alert' },
         { to: '/blood-bank/broadcast', label: '🔔 Broadcast All' },
         { to: '/blood-bank/appreciation', label: '💝 Appreciation' },
+        { to: '/blood-bank/news', label: '📢 Post News' },
       ]}
     />
   )
@@ -429,6 +430,7 @@ export default function AppRoutes() {
           <Route path="emergency" element={<EmergencyAlerts />} />
           <Route path="broadcast" element={<BroadcastAll />} />
           <Route path="appreciation" element={<AppreciationLetters />} />
+          <Route path="news" element={<PostNews />} />
         </Route>
       </Route>
 

@@ -134,9 +134,10 @@ class _StaffPortalScreenState extends State<StaffPortalScreen> {
     }
   }
 
-  InputDecoration _fieldStyle(String label, IconData icon) {
+  InputDecoration _fieldStyle(String label, IconData icon, {String? hintText}) {
     return InputDecoration(
       labelText: label,
+      hintText: hintText,
       labelStyle: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF1B5E20)),
       prefixIcon: Icon(icon, color: const Color(0xFF2E7D32)),
       filled: true,
@@ -392,9 +393,8 @@ class _StaffPortalScreenState extends State<StaffPortalScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _bpController,
-                            decoration: _fieldStyle('blood_pressure'.tr(), Icons.favorite_rounded),
+                            decoration: _fieldStyle('blood_pressure'.tr(), Icons.favorite_rounded, hintText: '120/80'),
                             keyboardType: TextInputType.text,
-                            hintText: '120/80',
                             validator: (v) => v == null || v.isEmpty ? 'Required' : null,
                           ),
                         ),

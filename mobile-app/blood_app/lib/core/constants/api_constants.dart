@@ -1,14 +1,10 @@
-class ApiConstants {
-  // Use ONE of these depending on how you are testing the app:
-  
-  // 1️⃣ For Web Browser (Chrome) or iOS Simulator:
-  // static const String baseUrl = 'http://127.0.0.1:5000/api'; 
-  
-  // 2️⃣ For Android Emulator:
-  // static const String baseUrl = 'http://10.0.2.2:5000/api'; 
+import 'package:flutter/foundation.dart';
 
-  // 3️⃣ For Physical Mobile Device or LAN access:
-  static const String baseUrl = 'http://10.196.242.198:5000/api';
+class ApiConstants {
+  // Dynamically set baseUrl based on whether the app is running on Web (Chrome) or Mobile:
+  static const String baseUrl = kIsWeb
+      ? 'http://localhost:5000/api'
+      : 'http://192.168.122.10:5000/api';
 
   // Donor
   static const String registerDonor = '/auth/register-donor';
@@ -18,6 +14,7 @@ class ApiConstants {
   static const String updateDeviceToken = '/donors/device-token';
   static const String history = '/donations/history';
   static const String getAllDonors = '/donors';
+  static const String checkPhone = '/auth/check-phone';
 
   // Notifications
   static const String notifications = '/notifications';

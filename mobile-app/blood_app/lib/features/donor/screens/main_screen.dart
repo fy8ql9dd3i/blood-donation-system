@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../app/theme.dart';
 import 'dashboard_screen.dart';
-import 'map_screen.dart';
-import 'profile_screen.dart';
 import 'notification_screen.dart';
+import 'profile_screen.dart';
 
+/// MainScreen is shown AFTER a donor successfully registers.
+/// It shows only the donor's relevant screens — no public-facing home or map.
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -16,7 +17,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Scaffold(
         backgroundColor: AppColors.bg,
         body: NestedScrollView(
@@ -29,50 +30,57 @@ class _MainScreenState extends State<MainScreen> {
                 elevation: 1,
                 forceElevated: innerBoxIsScrolled,
                 shadowColor: Colors.black12,
-                title: Text(
-                  'BloodApp',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -1.0,
-                  ),
-                ),
+                automaticallyImplyLeading: false, // No back arrow
+                // ── Title removed as requested ──────────────────────────────
+                title: null,
                 actions: [
-                  IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: AppColors.bgSubtle,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.search, color: Colors.black87, size: 22),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.favorite_rounded, color: AppColors.primary, size: 16),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Donor Portal',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    onPressed: () {},
                   ),
-                  IconButton(
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(
-                        color: AppColors.bgSubtle,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.chat_bubble_rounded, color: Colors.black87, size: 22),
-                    ),
-                    onPressed: () {},
-                  ),
-                  const SizedBox(width: 8),
                 ],
-                bottom: const TabBar(
+                bottom: TabBar(
                   indicatorColor: AppColors.primary,
                   indicatorWeight: 3,
                   labelColor: AppColors.primary,
                   unselectedLabelColor: AppColors.textSecondary,
-                  tabs: [
-                    Tab(icon: Icon(Icons.home_rounded, size: 28)),
-                    Tab(icon: Icon(Icons.location_on_rounded, size: 28)),
-                    Tab(icon: Icon(Icons.notifications_rounded, size: 28)),
-                    Tab(icon: Icon(Icons.menu_rounded, size: 28)), // Menu icon like Facebook
+                  tabs: const [
+                    Tab(
+                      icon: Icon(Icons.dashboard_rounded, size: 26),
+                      text: 'Dashboard',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.notifications_rounded, size: 26),
+                      text: 'Alerts',
+                    ),
+                    Tab(
+                      icon: Icon(Icons.person_rounded, size: 26),
+                      text: 'Profile',
+                    ),
                   ],
                 ),
               ),
@@ -81,7 +89,6 @@ class _MainScreenState extends State<MainScreen> {
           body: const TabBarView(
             children: [
               DashboardScreen(),
-              MapScreen(),
               NotificationScreen(),
               ProfileScreen(),
             ],

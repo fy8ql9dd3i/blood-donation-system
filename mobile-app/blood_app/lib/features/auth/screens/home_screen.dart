@@ -31,7 +31,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadDonorData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _isRegistered = prefs.getBool('isRegistered') ?? false;
+      // We read name/phone for display purposes only.
+      // Registration status is determined by the backend (by phone number),
+      // NOT by a device flag — so many donors can share one device.
+      _isRegistered = false; // always allow access to Register on home screen
       _fullName = prefs.getString('fullName') ?? '';
       _phone = prefs.getString('phoneNumber') ?? '';
     });
@@ -72,28 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return BaseScreen(
       title: 'app_name'.tr(),
-      actions: [
-        // Staff portal launcher
-        TextButton.icon(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const StaffPortalScreen()),
-            ).then((_) => _loadDonorData());
-          },
-          icon: const Icon(Icons.biotech_rounded, color: Colors.white),
-          label: Text(
-            'staff_portal'.tr().split(' ')[0],
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-          ),
-          style: TextButton.styleFrom(
-            backgroundColor: Colors.white24,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          ),
-        ),
-        const SizedBox(width: 8),
-      ],
+      actions: const [],
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -139,7 +121,12 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 12),
               _buildClinicalFactsGrid(),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 28),
+
+              // 2.5️⃣ Quick Access Services Grid
+              _buildQuickServicesGrid(),
+
+              const SizedBox(height: 32),
 
               // 3️⃣ Large Premium Action Button (Bottom Side)
               Padding(
@@ -160,6 +147,180 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildQuickServicesGrid() {
+    final services = [
+      {
+        'icon': Icons.person_rounded,
+        'label': 'My Profile',
+        'color': Colors.blue.shade700,
+        'bg': Colors.blue.shade50,
+        'route': '/profile',
+        'requiresAuth': true,
+      },
+      {
+        'icon': Icons.warning_amber_rounded,
+        'label': 'Emergency Alerts',
+        'color': Colors.red.shade700,
+        'bg': const Color(0xFFFFF0F0),
+        'route': '/emergency',
+        'requiresAuth': false,
+      },
+      {
+        'icon': Icons.history_rounded,
+        'label': 'History',
+        'color': Colors.teal.shade700,
+        'bg': Colors.teal.shade50,
+        'route': '/history',
+        'requiresAuth': true,
+      },
+      {
+        'icon': Icons.favorite_rounded,
+        'label': 'Appreciation',
+        'color': Colors.pink.shade600,
+        'bg': Colors.pink.shade50,
+        'route': '/appreciation',
+        'requiresAuth': true,
+      },
+      {
+        'icon': Icons.app_registration_rounded,
+        'label': 'Register',
+        'color': Colors.orange.shade800,
+        'bg': Colors.orange.shade50,
+        'action': 'register',
+        'requiresAuth': false,
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.grid_view_rounded, color: Colors.red, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'quick_services'.tr().toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 0.95,
+            ),
+            itemCount: services.length,
+            itemBuilder: (context, index) {
+              final service = services[index];
+              final color = service['color'] as Color;
+              final bg = service['bg'] as Color;
+              final label = service['label'] as String;
+
+              return GestureDetector(
+                onTap: () {
+                  // NOTE: We no longer block by device 'isRegistered' flag.
+                  // Registration is per-donor (checked by phone on the backend),
+                  // so multiple donors can share the same device.
+                  // Auth-required services simply open the registration screen
+                  // if a donor hasn't registered yet on this device session.
+                  final reqAuth = service['requiresAuth'] as bool;
+                  if (reqAuth) {
+                    // Redirect to register first; after register they go to dashboard
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Please register as a donor first to access $label!'),
+                        backgroundColor: Colors.red.shade800,
+                        action: SnackBarAction(
+                          label: 'REGISTER',
+                          textColor: Colors.white,
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/register').then((_) => _loadDonorData());
+                          },
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  if (service['action'] == 'staff') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const StaffPortalScreen()),
+                    ).then((_) => _loadDonorData());
+                  } else if (service['action'] == 'register') {
+                    // Always navigate to register — backend checks phone for duplicates
+                    Navigator.pushNamed(context, '/register').then((_) => _loadDonorData());
+                  } else {
+                    final route = service['route'] as String;
+                    Navigator.pushNamed(context, route);
+                  }
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFFFEAEB), width: 1.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: color.withOpacity(0.06),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: bg,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          service['icon'] as IconData,
+                          color: color,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: Text(
+                          label,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.grey.shade800,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildNewsCarousel() {
     if (_isLoadingNews) {
       return const SizedBox(
@@ -170,21 +331,57 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    // Fallback if list is empty
-    final displayList = _newsList.isNotEmpty
-        ? _newsList
-        : [
-            {
-              'title': 'Save Lives This Weekend!',
-              'content': 'Join us at the Bahir Dar main branch for a special donation campaign. Free health screening provided.',
-              'imageUrl': 'https://images.unsplash.com/photo-1615461066841-6116ecdccd04?q=80&w=800'
-            },
-            {
-              'title': 'Emergency: Blood Group O- Needed',
-              'content': 'Urgent demand for O Negative units at St. George Hospital. Please visit the nearest center today.',
-              'imageUrl': 'https://images.unsplash.com/photo-1536856788636-e875147be447?q=80&w=800'
-            }
-          ];
+    if (_newsList.isEmpty) {
+      return Container(
+        height: 140,
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFFFFEAEB), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.red.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.campaign_rounded, color: Colors.red, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Stay Tuned!',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'No news or announcements posted yet. Check back later!',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final displayList = _newsList;
 
     return SizedBox(
       height: 180,
@@ -326,45 +523,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMainActionButton() {
     if (_isRegistered) {
-      return Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF2E7D32), Color(0xFF4CAF50)],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.green.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.pushNamed(context, '/dashboard');
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.dashboard_rounded, color: Colors.white, size: 24),
-              const SizedBox(width: 12),
-              Text(
-                'dashboard'.tr().toUpperCase(),
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
-              ),
-            ],
-          ),
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     return Container(

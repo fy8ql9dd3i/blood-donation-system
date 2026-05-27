@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/auth_repository.dart';
 import '../../../shared/widgets/base_screen.dart';
+import '../../donor/screens/main_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -33,39 +34,70 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _isLoading = false;
 
+  // ─── Show "already registered" info dialog ─────────────────────────────────
+  void _showAlreadyRegisteredDialog(String donorName) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle_rounded, color: Colors.green.shade600, size: 28),
+            const SizedBox(width: 10),
+            const Text('Already Registered', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: Text(
+          'The phone number you entered is already registered under the name "$donorName".\n\nIf this is you, your registration is already complete! ✅',
+          style: const TextStyle(fontSize: 14, height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Main registration handler ─────────────────────────────────────────────
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
+      String phoneText = _phoneController.text.trim();
+      if (_selectedCountryCode == '+251' && phoneText.startsWith('0')) {
+        phoneText = phoneText.substring(1);
+      }
+      final fullPhoneNumber = '$_selectedCountryCode$phoneText';
+
+      // ── Register via repository → hits backend ──────────────────────────
+      await context.read<AuthRepository>().register({
+        'name': _fullNameController.text.trim(),
+        'phoneNumber': fullPhoneNumber,
+        'age': int.parse(_ageController.text.trim()),
+        'gender': _selectedGender,
+        'address': _addressController.text.trim(),
+        'language': context.locale.languageCode,
+        'sendToLabTest': true,
+      });
+
+      // ── Save donor info locally (keyed by phone, not device) ────────────
       final prefs = await SharedPreferences.getInstance();
-      final fullPhoneNumber = "$_selectedCountryCode${_phoneController.text.trim()}";
-      
       await prefs.setString('fullName', _fullNameController.text.trim());
       await prefs.setString('phoneNumber', fullPhoneNumber);
       await prefs.setString('age', _ageController.text.trim());
       await prefs.setString('gender', _selectedGender ?? '');
       await prefs.setString('address', _addressController.text.trim());
-      await prefs.setBool('isRegistered', true);
-
-      // We still attempt to register via repository to hit backend
-      try {
-        await context.read<AuthRepository>().register({
-          "name": _fullNameController.text.trim(),
-          "phoneNumber": fullPhoneNumber,
-          "age": int.parse(_ageController.text.trim()),
-          "gender": _selectedGender,
-          "address": _addressController.text.trim(),
-          "language": context.locale.languageCode,
-          "sendToLabTest": true,
-        });
-      } catch (e) {
-        // Ignore backend errors to ensure simple offline registration works if the server is starting
-        debugPrint('Backend registration error (offline fallback active): $e');
-      }
+      // NOTE: We do NOT set 'isRegistered' here — registration is per-donor,
+      // not per-device. Each donor's status lives in the backend.
 
       if (!mounted) return;
+
+      // ── Success: navigate to MainScreen and clear the back-stack ────────
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('registered_successfully'.tr()),
@@ -75,17 +107,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
 
-      // Go back to the Home screen
-      Navigator.pop(context);
+      // Replace entire stack so the user lands on the donor dashboard
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainScreen()),
+        (route) => false,
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+
+      final errMsg = e.toString();
+
+      // ── If the backend says phone is already registered, show a nice dialog
+      if (errMsg.toLowerCase().contains('already registered') ||
+          errMsg.toLowerCase().contains('phone number is already')) {
+        _showAlreadyRegisteredDialog(_fullNameController.text.trim());
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errMsg),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -141,7 +185,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Heading card
+                  // ── Heading card ──────────────────────────────────────────
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -190,7 +234,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // 1️⃣ Full Name
+                  // ── 1️⃣ Full Name ─────────────────────────────────────────
                   TextFormField(
                     controller: _fullNameController,
                     decoration: _buildInputDecoration(label: '${'name'.tr()} *', prefixIcon: Icons.person_rounded),
@@ -207,7 +251,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // 2️⃣ Phone Number with Country Code
+                  // ── 2️⃣ Phone Number with Country Code ────────────────────
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     decoration: BoxDecoration(
@@ -257,6 +301,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
                                 return 'Phone number must contain only numbers';
                               }
+                              if (_selectedCountryCode == '+251') {
+                                if (value.startsWith('0')) {
+                                  if (value.length != 10) {
+                                    return 'Ethiopian local number must be 10 digits starting with 09 or 07';
+                                  }
+                                  if (!value.startsWith('09') && !value.startsWith('07')) {
+                                    return 'Ethiopian local number must start with 09 (EthioTelecom) or 07 (Safaricom)';
+                                  }
+                                } else {
+                                  if (value.length != 9) {
+                                    return 'Phone number must be 9 digits (e.g. 911223344)';
+                                  }
+                                }
+                              }
                               return null;
                             },
                           ),
@@ -266,7 +324,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // 3️⃣ Age & Gender Row
+                  // ── 3️⃣ Age & Gender Row ──────────────────────────────────
                   Row(
                     children: [
                       Expanded(
@@ -319,7 +377,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // 4️⃣ Address
+                  // ── 4️⃣ Address ───────────────────────────────────────────
                   TextFormField(
                     controller: _addressController,
                     decoration: _buildInputDecoration(label: '${'address'.tr()} *', prefixIcon: Icons.location_on_rounded),
@@ -333,7 +391,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 32),
 
-                  // Submit Button
+                  // ── Submit Button ─────────────────────────────────────────
                   _isLoading
                       ? const Center(child: CircularProgressIndicator(color: Colors.red))
                       : Container(
