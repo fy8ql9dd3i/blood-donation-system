@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/auth_repository.dart';
 import '../../../shared/widgets/base_screen.dart';
-import '../../donor/screens/main_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -42,9 +41,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Row(
           children: [
-            Icon(Icons.check_circle_rounded, color: Colors.green.shade600, size: 28),
+            Icon(Icons.check_circle_rounded,
+                color: Colors.green.shade600, size: 28),
             const SizedBox(width: 10),
-            const Text('Already Registered', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            const Text('Already Registered',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           ],
         ),
         content: Text(
@@ -54,7 +55,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w800)),
+            child: const Text('OK',
+                style:
+                    TextStyle(color: Colors.red, fontWeight: FontWeight.w800)),
           ),
         ],
       ),
@@ -97,21 +100,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      // ── Success: navigate to MainScreen and clear the back-stack ────────
+      // ── Success: show confirmation and return to Home screen ──────────
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('registered_successfully'.tr()),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
 
-      // Replace entire stack so the user lands on the donor dashboard
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const MainScreen()),
-        (route) => false,
-      );
+      // Replace the stack with Home so the donor returns to the main app page
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
     } catch (e) {
       if (!mounted) return;
 
@@ -137,10 +138,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  InputDecoration _buildInputDecoration({required String label, required IconData prefixIcon}) {
+  InputDecoration _buildInputDecoration(
+      {required String label, required IconData prefixIcon}) {
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.w600),
+      labelStyle:
+          TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.w600),
       prefixIcon: Icon(prefixIcon, color: Colors.red.shade700),
       filled: true,
       fillColor: Colors.white,
@@ -207,7 +210,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             color: Colors.red.shade50,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.favorite_rounded, color: Colors.red, size: 40),
+                          child: const Icon(Icons.favorite_rounded,
+                              color: Colors.red, size: 40),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -237,7 +241,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // ── 1️⃣ Full Name ─────────────────────────────────────────
                   TextFormField(
                     controller: _fullNameController,
-                    decoration: _buildInputDecoration(label: '${'name'.tr()} *', prefixIcon: Icons.person_rounded),
+                    decoration: _buildInputDecoration(
+                        label: '${'name'.tr()} *',
+                        prefixIcon: Icons.person_rounded),
                     style: const TextStyle(fontWeight: FontWeight.w600),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -253,11 +259,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   // ── 2️⃣ Phone Number with Country Code ────────────────────
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.red.shade100, width: 1.5),
+                      border:
+                          Border.all(color: Colors.red.shade100, width: 1.5),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -266,7 +274,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: DropdownButton<String>(
                             value: _selectedCountryCode,
                             dropdownColor: Colors.white,
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
                             items: _countryCodes.map((country) {
                               return DropdownMenuItem<String>(
                                 value: country['code'],
@@ -283,7 +293,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Container(width: 1.5, height: 30, color: Colors.red.shade100),
+                        Container(
+                            width: 1.5, height: 30, color: Colors.red.shade100),
                         const SizedBox(width: 12),
                         Expanded(
                           child: TextFormField(
@@ -292,7 +303,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               hintText: 'Phone Number *',
                               border: InputBorder.none,
                             ),
-                            style: const TextStyle(fontWeight: FontWeight.w600, letterSpacing: 1.1),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 1.1),
                             keyboardType: TextInputType.phone,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -306,7 +319,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   if (value.length != 10) {
                                     return 'Ethiopian local number must be 10 digits starting with 09 or 07';
                                   }
-                                  if (!value.startsWith('09') && !value.startsWith('07')) {
+                                  if (!value.startsWith('09') &&
+                                      !value.startsWith('07')) {
                                     return 'Ethiopian local number must start with 09 (EthioTelecom) or 07 (Safaricom)';
                                   }
                                 } else {
@@ -330,7 +344,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Expanded(
                         child: TextFormField(
                           controller: _ageController,
-                          decoration: _buildInputDecoration(label: '${'age'.tr()} *', prefixIcon: Icons.cake_rounded),
+                          decoration: _buildInputDecoration(
+                              label: '${'age'.tr()} *',
+                              prefixIcon: Icons.cake_rounded),
                           style: const TextStyle(fontWeight: FontWeight.w600),
                           keyboardType: TextInputType.number,
                           validator: (value) {
@@ -352,13 +368,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: _selectedGender,
-                          decoration: _buildInputDecoration(label: '${'gender'.tr()} *', prefixIcon: Icons.wc_rounded),
+                          decoration: _buildInputDecoration(
+                              label: '${'gender'.tr()} *',
+                              prefixIcon: Icons.wc_rounded),
                           dropdownColor: Colors.white,
-                          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87),
                           items: [
-                            DropdownMenuItem(value: 'Male', child: Text('male'.tr())),
-                            DropdownMenuItem(value: 'Female', child: Text('female'.tr())),
-                            DropdownMenuItem(value: 'Other', child: Text('other'.tr())),
+                            DropdownMenuItem(
+                                value: 'Male', child: Text('male'.tr())),
+                            DropdownMenuItem(
+                                value: 'Female', child: Text('female'.tr())),
+                            DropdownMenuItem(
+                                value: 'Other', child: Text('other'.tr())),
                           ],
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -380,7 +403,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   // ── 4️⃣ Address ───────────────────────────────────────────
                   TextFormField(
                     controller: _addressController,
-                    decoration: _buildInputDecoration(label: '${'address'.tr()} *', prefixIcon: Icons.location_on_rounded),
+                    decoration: _buildInputDecoration(
+                        label: '${'address'.tr()} *',
+                        prefixIcon: Icons.location_on_rounded),
                     style: const TextStyle(fontWeight: FontWeight.w600),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -393,7 +418,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   // ── Submit Button ─────────────────────────────────────────
                   _isLoading
-                      ? const Center(child: CircularProgressIndicator(color: Colors.red))
+                      ? const Center(
+                          child: CircularProgressIndicator(color: Colors.red))
                       : Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20),
@@ -414,11 +440,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               backgroundColor: Colors.transparent,
                               shadowColor: Colors.transparent,
                               padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
                             ),
                             child: Text(
                               'register'.tr().toUpperCase(),
-                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2),
                             ),
                           ),
                         ),

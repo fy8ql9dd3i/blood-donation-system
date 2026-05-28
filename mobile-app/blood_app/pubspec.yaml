@@ -21,6 +21,9 @@ dependencies:
   url_launcher: ^6.3.2
   share_plus: ^13.1.0
   geolocator: ^14.0.1
+  socket_io_client: ^2.0.1
+  firebase_messaging: ^15.0.0
+  firebase_core: ^3.0.0
 
 dev_dependencies:
   flutter_test:

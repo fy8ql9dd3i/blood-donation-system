@@ -30,12 +30,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final Set<String> _alertedNotifications = {};
   int _cachedNotificationsCount = 0;
 
+  _DashboardScreenState() {
+    // Initialize with an empty list future to avoid late initialization errors
+    _newsFuture = Future.value([]);
+  }
+
   @override
   void initState() {
     super.initState();
     _profileFuture = context.read<DonorRepository>().getProfile();
     _notifFuture = context.read<NotificationRepository>().getNotifications();
-    _newsFuture = _newsService.fetchNews(context.locale.languageCode);
+
+    // Defer locale-dependent code to after first frame to avoid accessing inherited widgets during initState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _newsFuture = _newsService.fetchNews(context.locale.languageCode);
+        });
+      }
+    });
 
     // Track initial notifications list to avoid double prompting existing unread items on startup
     _notifFuture.then((list) {
@@ -74,7 +87,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         if (n.read) return false;
         final t = n.title.toLowerCase();
         final m = n.message.toLowerCase();
-        return n.type == 'EMERGENCY' || t.contains('urgent') || t.contains('emergency') || m.contains('urgent');
+        return n.type == 'EMERGENCY' ||
+            t.contains('urgent') ||
+            t.contains('emergency') ||
+            m.contains('urgent');
       }).toList();
 
       bool hasNew = false;
@@ -105,8 +121,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(status == 'ACCEPTED' ? 'Request Accepted ❤️' : 'Request Declined'),
-          backgroundColor: status == 'ACCEPTED' ? Colors.green.shade600 : Colors.red.shade600,
+          content: Text(status == 'ACCEPTED'
+              ? 'Request Accepted ❤️'
+              : 'Request Declined'),
+          backgroundColor: status == 'ACCEPTED'
+              ? Colors.green.shade600
+              : Colors.red.shade600,
         ),
       );
       _refreshAll();
@@ -189,11 +209,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
-                        side: BorderSide(color: Colors.red.shade200, width: 1.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        side:
+                            BorderSide(color: Colors.red.shade200, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      child: const Text('Decline', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                      child: const Text('Decline',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 13)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -206,11 +230,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green.shade600,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         elevation: 2,
                       ),
-                      child: const Text('Accept ❤️', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                      child: const Text('Accept ❤️',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 13)),
                     ),
                   ),
                 ],
@@ -823,7 +850,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       future: _newsFuture,
       builder: (context, snapshot) {
         final newsList = snapshot.data ?? [];
-        if (newsList.isEmpty && snapshot.connectionState != ConnectionState.waiting) {
+        if (newsList.isEmpty &&
+            snapshot.connectionState != ConnectionState.waiting) {
           return const SizedBox.shrink();
         }
 
@@ -925,7 +953,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: Colors.orange.shade50,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.newspaper_rounded, color: Colors.orange, size: 20),
+            child: const Icon(Icons.newspaper_rounded,
+                color: Colors.orange, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -1096,7 +1125,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (n.read) return false;
           final t = n.title.toLowerCase();
           final m = n.message.toLowerCase();
-          return n.type == 'EMERGENCY' || t.contains('urgent') || t.contains('emergency') || m.contains('urgent');
+          return n.type == 'EMERGENCY' ||
+              t.contains('urgent') ||
+              t.contains('emergency') ||
+              m.contains('urgent');
         }).toList();
 
         if (activeEmergencies.isEmpty) return const SizedBox.shrink();
@@ -1173,9 +1205,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: AppColors.primary,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
                               minimumSize: Size.zero,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
                             ),
                             child: const Text(
                               'RESPOND NOW',
@@ -1187,7 +1221,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           const SizedBox(width: 10),
                           TextButton(
-                            onPressed: () => _handleResponse(alert.id, 'DECLINED'),
+                            onPressed: () =>
+                                _handleResponse(alert.id, 'DECLINED'),
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.white,
                             ),

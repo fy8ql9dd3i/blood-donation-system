@@ -134,82 +134,80 @@ class _RegisterScreenState extends State<RegisterScreen>
     _formKey.currentState?.reset();
   }
 
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.check_circle, color: Colors.green, size: 56),
-        title: const Text('Registration Successful!'),
-        content: const Text(
-          'You have been registered as a donor, and a Lab Test entry has been created for you.\n\n'
-          'Your profile is pending approval by our medical team.',
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context); // close dialog
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const HomeScreen()),
-                (route) => false,
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFB71C1C),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: const Text('Go Home', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
+   void _showSuccessDialog() {
+     showDialog(
+       context: context,
+       barrierDismissible: false,
+       builder: (_) => AlertDialog(
+         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+         title: const Text('Registration Successful!'),
+         content: const Text(
+           'You have been registered as a donor, and a Lab Test entry has been created for you.\n\n'
+           'Your profile is pending approval by our medical team.',
+           textAlign: TextAlign.center,
+         ),
+         actions: [
+           ElevatedButton(
+             onPressed: () {
+               Navigator.pop(context); // close dialog
+               Navigator.pushAndRemoveUntil(
+                 context,
+                 MaterialPageRoute(builder: (_) => const HomeScreen()),
+                 (route) => false,
+               );
+             },
+             style: ElevatedButton.styleFrom(
+               backgroundColor: const Color(0xFFB71C1C),
+               shape: RoundedRectangleBorder(
+                 borderRadius: BorderRadius.circular(10),
+               ),
+             ),
+             child: const Text('Go Home', style: TextStyle(color: Colors.white)),
+           ),
+         ],
+       ),
+     );
+   }
 
-  void _showWelcomeBackDialog(String name) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.waving_hand, color: Color(0xFFB71C1C), size: 56),
-        title: const Text('Welcome Back!'),
-        content: Text(
-          'Hello $name, we found your existing blood donor profile. '
-          'You have been logged in automatically.',
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          Center(
-            child: SizedBox(
-              width: 120,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); // close dialog
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HomeScreen()),
-                    (route) => false,
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFB71C1C),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                child: const Text('OK', style: TextStyle(color: Colors.white)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+   void _showWelcomeBackDialog(String name) {
+     showDialog(
+       context: context,
+       barrierDismissible: false,
+       builder: (_) => AlertDialog(
+         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+         title: const Text('Welcome Back!'),
+         content: Text(
+           'Hello $name, we found your existing blood donor profile. '
+           'You have been logged in automatically.',
+           textAlign: TextAlign.center,
+         ),
+         actions: [
+           Center(
+             child: SizedBox(
+               width: 120,
+               child: ElevatedButton(
+                 onPressed: () {
+                   Navigator.pop(context); // close dialog
+                   Navigator.pushAndRemoveUntil(
+                     context,
+                     MaterialPageRoute(builder: (_) => const HomeScreen()),
+                     (route) => false,
+                   );
+                 },
+                 style: ElevatedButton.styleFrom(
+                   backgroundColor: const Color(0xFFB71C1C),
+                   shape: RoundedRectangleBorder(
+                     borderRadius: BorderRadius.circular(10),
+                   ),
+                 ),
+                 child: const Text('OK', style: TextStyle(color: Colors.white)),
+               ),
+             ),
+           ),
+         ],
+       ),
+     );
+   }
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(

@@ -261,14 +261,14 @@ export default function VerifyDonor() {
                       phone: d.phone || d.phoneNumber || '',
                       address: d.address || '',
                       blood_type: d.bloodType || 'Unknown',
-                      hiv: 'Non-Reactive',
-                      hbv: 'Non-Reactive',
-                      weight: 60,
-                      hemoglobin: 13.5,
-                      bp: '120/80',
-                      pulse: 72,
-                      bodyTemperature: 36.6,
-                      donation_amount: 450,
+                      hiv: '',
+                      hbv: '',
+                      weight: '',
+                      hemoglobin: '',
+                      bp: '',
+                      pulse: '',
+                      bodyTemperature: '',
+                      donation_amount: '',
                       collection_date: today,
                       expiry_date: new Date(new Date().getTime() + 42 * 24 * 3600 * 1000).toISOString().slice(0, 10),
                     }}
@@ -277,6 +277,15 @@ export default function VerifyDonor() {
                       if (isNaN(parsedAge) || parsedAge < 18 || parsedAge > 65) {
                         toast.error('Donor must be between 18 and 65 years old to donate');
                         return;
+                      }
+                      const measured = parseInt(values.donation_amount);
+                      if (!measured || isNaN(measured) || measured <= 0) {
+                        toast.error('Please enter the measured donation volume (mL) before submitting.');
+                        return;
+                      }
+                      const FRONTEND_MIN_VOL = 400;
+                      if (measured < FRONTEND_MIN_VOL) {
+                        toast.warn(`Measured volume (${measured} mL) is below typical minimum (${FRONTEND_MIN_VOL} mL). Backend may reject.`);
                       }
                       mutation.mutate(values);
                     }}
@@ -337,7 +346,10 @@ export default function VerifyDonor() {
                           <Field name="bodyTemperature" type="number" step="0.1" className="w-12 bg-slate-50 border border-slate-200 rounded text-center text-[11px]" />
                         </td>
                         <td className="border border-slate-300 p-1 text-center">
-                          <Field name="donation_amount" type="number" className="w-14 bg-slate-50 border border-slate-200 rounded text-center text-[11px]" />
+                          <div className="flex items-center justify-center gap-1">
+                            <Field name="donation_amount" type="number" min="0" placeholder="mL" className="w-20 bg-slate-50 border border-slate-200 rounded text-center text-[11px]" />
+                            <span className="text-[10px] text-slate-500">mL</span>
+                          </div>
                         </td>
                         <td className="border border-slate-300 p-2 text-center">
                           <div className="flex flex-col items-center">

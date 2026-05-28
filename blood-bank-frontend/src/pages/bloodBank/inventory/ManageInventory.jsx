@@ -402,7 +402,7 @@ export default function ManageInventory() {
                     <tr className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] border-b border-slate-100">
                       <th className="px-10 py-8 text-center">Specimen #</th>
                       <th className="px-10 py-8 text-center">Biological Type</th>
-                      <th className="px-10 py-8 text-center">Volume (Units)</th>
+                      <th className="px-10 py-8 text-center">Volume (Units / mL)</th>
                       <th className="px-10 py-8 text-center">Timeline Control</th>
                       <th className="px-10 py-8 text-center">Stability Status</th>
                       <th className="px-10 py-8 text-right">Operational Actions</th>
@@ -432,6 +432,13 @@ export default function ManageInventory() {
                                     {r.donor.phone && (
                                       <span className="text-[8px] font-mono text-slate-400 mt-0.5">{r.donor.phone}</span>
                                     )}
+                                    {r.labTest && (
+                                      <div className="mt-1 text-[9px] text-slate-500 space-y-0.5">
+                                        <div>Lab: <span className="font-black text-slate-700">{r.labTest.status}</span></div>
+                                        <div>Hb: <span className="font-mono">{r.labTest.hemoglobin ?? '—'}</span> • HIV: <span className="font-mono">{r.labTest.hiv ?? 'NR'}</span> • HBV: <span className="font-mono">{r.labTest.hbv ?? 'NR'}</span></div>
+                                        <div>Temp: <span className="font-mono">{r.labTest.bodyTemperature ?? '—'}°C</span></div>
+                                      </div>
+                                    )}
                                   </div>
                                 ) : (
                                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
@@ -447,6 +454,7 @@ export default function ManageInventory() {
                             </td>
                             <td className="px-10 py-10 text-center">
                               <p className="text-4xl font-black text-slate-900 tracking-tighter leading-none">{qty}</p>
+                              <p className="text-[11px] font-black text-slate-700 mt-1">{r.volume ? `${r.volume} mL` : '— mL'}</p>
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">Certified Units</p>
                             </td>
                             <td className="px-10 py-10">

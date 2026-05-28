@@ -77,13 +77,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   void _promptRegistration() {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        icon: const Icon(Icons.lock_outline, color: Color(0xFFB71C1C), size: 48),
+        icon:
+            const Icon(Icons.lock_outline, color: Color(0xFFB71C1C), size: 48),
         title: const Text('Registration Required'),
         content: const Text(
           'You need to register as a blood donor to access this feature and view your information.',
@@ -108,7 +108,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            child: const Text('Register Now', style: TextStyle(color: Colors.white)),
+            child: const Text('Register Now',
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -141,7 +142,10 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(width: 8),
             Text(
               'Donor Portal',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22,
+                  color: Colors.white),
             ),
           ],
         ),
@@ -149,9 +153,11 @@ class _HomeScreenState extends State<HomeScreen> {
           PopupMenuButton<AppLanguage>(
             icon: const Icon(Icons.language, color: Colors.white),
             onSelected: (AppLanguage language) {
-              Provider.of<LanguageProvider>(context, listen: false).setLanguage(language);
+              Provider.of<LanguageProvider>(context, listen: false)
+                  .setLanguage(language);
             },
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<AppLanguage>>[
+            itemBuilder: (BuildContext context) =>
+                <PopupMenuEntry<AppLanguage>>[
               for (var lang in AppLanguage.values)
                 PopupMenuItem<AppLanguage>(
                   value: lang,
@@ -159,17 +165,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(lang.flag),
                       const SizedBox(width: 8),
-                      Text(lang.displayName, style: const TextStyle(fontWeight: FontWeight.w500)),
+                      Text(lang.displayName,
+                          style: const TextStyle(fontWeight: FontWeight.w500)),
                     ],
                   ),
                 ),
             ],
           ),
-          if (_isLoggedIn)
-            IconButton(
-              icon: const Icon(Icons.account_circle, size: 28, color: Colors.white),
-              onPressed: () => _navigateToFeature(const ProfileScreen()),
-            ),
         ],
       ),
       body: RefreshIndicator(
@@ -196,7 +198,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation(Colors.white)),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation(Colors.white)),
                       )
                     else if (_isLoggedIn && _donorProfile != null)
                       Column(
@@ -214,19 +218,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   'Blood Type: ${_donorProfile!.bloodType ?? 'Pending'}',
-                                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600),
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: _donorProfile!.status == 'approved'
                                       ? Colors.green.shade700
@@ -234,8 +243,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  _donorProfile!.status == 'approved' ? 'Approved' : 'Pending Approval',
-                                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                                  _donorProfile!.status == 'approved'
+                                      ? 'Approved'
+                                      : 'Pending Approval',
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600),
                                 ),
                               ),
                             ],
@@ -336,7 +350,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: 'Appreciation',
                       description: 'Thank-you letters',
                       color: Colors.purple.shade700,
-                      onTap: () => _navigateToFeature(const AppreciationScreen()),
+                      onTap: () =>
+                          _navigateToFeature(const AppreciationScreen()),
                     ),
                   ],
                 ),
@@ -344,46 +359,67 @@ class _HomeScreenState extends State<HomeScreen> {
 
               const SizedBox(height: 32),
 
-              // ─── DYNAMIC REGISTER BUTTON ───
+              // ─── DYNAMIC ACTION BUTTON ───
               Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [themeColor, const Color(0xFFE53935)],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: themeColor.withOpacity(0.35),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        )
-                      ],
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: _isLoggedIn
+                          ? [Colors.green.shade700, Colors.green.shade900]
+                          : [themeColor, const Color(0xFFE53935)],
                     ),
-                    child: ElevatedButton.icon(
-                      onPressed: () {
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: (_isLoggedIn ? Colors.green : themeColor)
+                            .withOpacity(0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      )
+                    ],
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      if (_isLoggedIn) {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const ProfileScreen()),
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const RegisterScreen()),
                         ).then((_) => _checkStatusAndLoadData());
-                      },
-                      icon: const Icon(Icons.person_add, color: Colors.white),
-                      label: const Text(
-                        'Register as Blood Donor',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
+                      }
+                    },
+                    icon: Icon(
+                      _isLoggedIn ? Icons.person : Icons.person_add,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      _isLoggedIn
+                          ? 'View My Profile'
+                          : 'Register as Blood Donor',
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                   ),
                 ),
+              ),
 
               const SizedBox(height: 40),
             ],
@@ -398,7 +434,8 @@ class _HomeScreenState extends State<HomeScreen> {
       return const SizedBox(
         height: 160,
         child: Center(
-          child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Color(0xFFB71C1C))),
+          child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation(Color(0xFFB71C1C))),
         ),
       );
     }
@@ -417,11 +454,13 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.announcement_outlined, color: Colors.grey.shade400, size: 40),
+                Icon(Icons.announcement_outlined,
+                    color: Colors.grey.shade400, size: 40),
                 const SizedBox(height: 8),
                 const Text(
                   'No announcements at this time.',
-                  style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: Colors.black54, fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -442,7 +481,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Card(
               elevation: 3,
               shadowColor: Colors.black26,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Container(

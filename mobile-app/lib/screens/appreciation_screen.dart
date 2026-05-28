@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/notification_service.dart';
+import '../services/storage_service.dart';
 import '../models/notification_model.dart';
 
 class AppreciationScreen extends StatefulWidget {
@@ -17,65 +18,90 @@ class _AppreciationScreenState extends State<AppreciationScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeSocketListener();
     _loadAppreciationLetters();
+  }
+
+  Future<void> _initializeSocketListener() async {
+    try {
+      final donorId = StorageService.getDonorId();
+      if (donorId != null) {
+        await NotificationService.initializeSocket(donorId);
+        NotificationService.onNewNotification((notification) {
+          if (_matchesAppreciationNotification(notification)) {
+            if (mounted) {
+              setState(() {
+                final exists = _letters.any((n) => n.id == notification.id);
+                if (!exists) {
+                  _letters.insert(0, notification);
+                }
+              });
+            }
+          }
+        });
+      }
+    } catch (e) {
+      print('[Appreciation Screen] Socket initialization error: $e');
+    }
+  }
+
+  bool _matchesAppreciationNotification(NotificationModel notification) {
+    final title = notification.title.toLowerCase();
+    final msg = notification.message.toLowerCase();
+    final isGeneral = notification.type == 'GENERAL';
+
+    final hasAppreciationKeyword = title.contains('thank') ||
+        title.contains('commendation') ||
+        title.contains('appreciation') ||
+        title.contains('hero') ||
+        title.contains('lifesaver') ||
+        title.contains('💝') ||
+        title.contains('🎖️') ||
+        title.contains('🙏') ||
+        title.contains('❤️') ||
+        title.contains('⭐') ||
+        title.contains('አመሰግናለሁ') ||
+        title.contains('ምስጋና') ||
+        title.contains('ጀግና') ||
+        title.contains('galatoomi') ||
+        title.contains('galata') ||
+        title.contains('goota') ||
+        msg.contains('thank') ||
+        msg.contains('commendation') ||
+        msg.contains('appreciation') ||
+        msg.contains('hero') ||
+        msg.contains('lifesaver') ||
+        msg.contains('💝') ||
+        msg.contains('🎖️') ||
+        msg.contains('🙏') ||
+        msg.contains('❤️') ||
+        msg.contains('⭐') ||
+        msg.contains('አመሰግናለሁ') ||
+        msg.contains('ምስጋና') ||
+        msg.contains('ጀግና') ||
+        msg.contains('galatoomi') ||
+        msg.contains('galata') ||
+        msg.contains('goota');
+
+    final isSystemOrStatusMsg = title.contains('welcome') ||
+        title.contains('approved') ||
+        title.contains('rejected') ||
+        title.contains('account') ||
+        msg.contains('pending approval') ||
+        msg.contains('registering') ||
+        msg.contains('registration') ||
+        msg.contains('eligible to donate') ||
+        msg.contains('eligibility');
+
+    return isGeneral && hasAppreciationKeyword && !isSystemOrStatusMsg;
   }
 
   Future<void> _loadAppreciationLetters() async {
     setState(() => _isLoading = true);
     final list = await NotificationService.getNotifications();
 
-    // Filter to only include GENERAL notifications containing appreciation terms
-    final filtered = list.where((n) {
-      final title = n.title.toLowerCase();
-      final msg = n.message.toLowerCase();
-      final isGeneral = n.type == 'GENERAL';
-
-      final hasAppreciationKeyword = title.contains('thank') ||
-          title.contains('commendation') ||
-          title.contains('appreciation') ||
-          title.contains('hero') ||
-          title.contains('lifesaver') ||
-          title.contains('💝') ||
-          title.contains('🎖️') ||
-          title.contains('🙏') ||
-          title.contains('❤️') ||
-          title.contains('⭐') ||
-          title.contains('አመሰግናለሁ') ||
-          title.contains('ምስጋና') ||
-          title.contains('ጀግና') ||
-          title.contains('galatoomi') ||
-          title.contains('galata') ||
-          title.contains('goota') ||
-          msg.contains('thank') ||
-          msg.contains('commendation') ||
-          msg.contains('appreciation') ||
-          msg.contains('hero') ||
-          msg.contains('lifesaver') ||
-          msg.contains('💝') ||
-          msg.contains('🎖️') ||
-          msg.contains('🙏') ||
-          msg.contains('❤️') ||
-          msg.contains('⭐') ||
-          msg.contains('አመሰግናለሁ') ||
-          msg.contains('ምስጋና') ||
-          msg.contains('ጀግና') ||
-          msg.contains('galatoomi') ||
-          msg.contains('galata') ||
-          msg.contains('goota');
-
-      // Exclude registration, approval, or system status updates from appreciation letters
-      final isSystemOrStatusMsg = title.contains('welcome') ||
-          title.contains('approved') ||
-          title.contains('rejected') ||
-          title.contains('account') ||
-          msg.contains('pending approval') ||
-          msg.contains('registering') ||
-          msg.contains('registration') ||
-          msg.contains('eligible to donate') ||
-          msg.contains('eligibility');
-
-      return isGeneral && hasAppreciationKeyword && !isSystemOrStatusMsg;
-    }).toList();
+    // Filter to only include appreciation notifications
+    final filtered = list.where(_matchesAppreciationNotification).toList();
 
     if (mounted) {
       setState(() {
@@ -83,6 +109,12 @@ class _AppreciationScreenState extends State<AppreciationScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  @override
+  void dispose() {
+    NotificationService.disconnect();
+    super.dispose();
   }
 
   @override
@@ -94,7 +126,8 @@ class _AppreciationScreenState extends State<AppreciationScreen> {
       appBar: AppBar(
         backgroundColor: themeColor,
         elevation: 0,
-        title: const Text('Appreciation Letters', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text('Appreciation Letters',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -103,7 +136,9 @@ class _AppreciationScreenState extends State<AppreciationScreen> {
       body: RefreshIndicator(
         onRefresh: _loadAppreciationLetters,
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Color(0xFFB71C1C))))
+            ? const Center(
+                child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation(Color(0xFFB71C1C))))
             : _letters.isEmpty
                 ? _buildEmptyState()
                 : ListView.builder(
@@ -127,11 +162,15 @@ class _AppreciationScreenState extends State<AppreciationScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.card_membership_outlined, size: 72, color: Colors.grey.shade400),
+              Icon(Icons.card_membership_outlined,
+                  size: 72, color: Colors.grey.shade400),
               const SizedBox(height: 16),
               const Text(
                 'No Letters Received Yet',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87),
               ),
               const SizedBox(height: 6),
               const Padding(
@@ -204,7 +243,8 @@ class _AppreciationScreenState extends State<AppreciationScreen> {
                         const SizedBox(height: 4),
                         Text(
                           formatter.format(item.createdAt),
-                          style: const TextStyle(fontSize: 11, color: Colors.black45),
+                          style: const TextStyle(
+                              fontSize: 11, color: Colors.black45),
                         ),
                       ],
                     ),

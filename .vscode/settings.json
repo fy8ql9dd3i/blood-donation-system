@@ -2,5 +2,6 @@
     "cSpell.words": [
         "yema"
     ],
-    "prisma.pinToPrisma6": true
+    "prisma.pinToPrisma6": true,
+    "cmake.sourceDirectory": "C:/Users/User/Desktop/blood-donation-system/mobile-app/linux"
 }

@@ -2,9 +2,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class StorageService {
   static const String _tokenKey = 'auth_token';
+  static const String _donorIdKey = 'donor_id';
   static const String _donorNameKey = 'donor_name';
   static const String _donorPhoneKey = 'donor_phone';
-  static const String _languageKey = 'app_language';
+  static const String _languageKey = 'app_language'
 
   static SharedPreferences? _prefs;
 
@@ -26,6 +27,16 @@ class StorageService {
   static Future<bool> clearToken() async {
     _prefs ??= await SharedPreferences.getInstance();
     return await _prefs!.remove(_tokenKey);
+  }
+
+  // Donor ID (for emergency alerts and socket connection)
+  static Future<bool> saveDonorId(int donorId) async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return await _prefs!.setInt(_donorIdKey, donorId);
+  }
+
+  static int? getDonorId() {
+    return _prefs?.getInt(_donorIdKey);
   }
 
   // Donor details persistence
