@@ -39,7 +39,9 @@ class _NewsScreenState extends State<NewsScreen> {
     if (_selectedLang == 'all') {
       return _newsList;
     }
-    return _newsList.where((n) => n.language.toLowerCase() == _selectedLang.toLowerCase()).toList();
+    return _newsList
+        .where((n) => n.language.toLowerCase() == _selectedLang.toLowerCase())
+        .toList();
   }
 
   @override
@@ -186,8 +188,9 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   Widget _buildNewsCard(NewsModel news) {
-    final dateStr = '${news.createdAt.day}/${news.createdAt.month}/${news.createdAt.year}';
-    
+    final dateStr =
+        '${news.createdAt.day}/${news.createdAt.month}/${news.createdAt.year}';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -220,7 +223,8 @@ class _NewsScreenState extends State<NewsScreen> {
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
                           color: Colors.grey.shade100,
-                          child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade300, size: 48),
+                          child: Icon(Icons.broken_image_outlined,
+                              color: Colors.grey.shade300, size: 48),
                         );
                       },
                       loadingBuilder: (context, child, loadingProgress) {
@@ -230,7 +234,8 @@ class _NewsScreenState extends State<NewsScreen> {
                           child: const Center(
                             child: CircularProgressIndicator(
                               strokeWidth: 2.0,
-                              valueColor: AlwaysStoppedAnimation(Color(0xFFB71C1C)),
+                              valueColor:
+                                  AlwaysStoppedAnimation(Color(0xFFB71C1C)),
                             ),
                           ),
                         );
@@ -240,7 +245,8 @@ class _NewsScreenState extends State<NewsScreen> {
                       top: 12,
                       right: 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.6),
                           borderRadius: BorderRadius.circular(8),
@@ -278,7 +284,8 @@ class _NewsScreenState extends State<NewsScreen> {
                       ),
                       if (news.imageUrl == null || news.imageUrl!.isEmpty)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(8),
