@@ -11,6 +11,7 @@ import 'profile_screen.dart';
 import 'emergency_screen.dart';
 import 'history_screen.dart';
 import 'appreciation_screen.dart';
+import 'news_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -285,18 +286,38 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
 
               // ─── ANNOUNCEMENTS / NEWS SLIDER (TOP SIDE) ───
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  'Announcements & News',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.between,
+                  children: [
+                    const Text(
+                      'Announcements & News',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const NewsScreen()),
+                        );
+                      },
+                      child: const Text(
+                        'See All',
+                        style: TextStyle(
+                          color: Color(0xFFB71C1C),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
               _buildNewsSlider(),
 
               const SizedBox(height: 24),
@@ -483,9 +504,17 @@ class _HomeScreenState extends State<HomeScreen> {
               shadowColor: Colors.black26,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16)),
-              child: ClipRRect(
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NewsScreen()),
+                  );
+                },
                 borderRadius: BorderRadius.circular(16),
-                child: Container(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.bottomRight,

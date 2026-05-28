@@ -2,9 +2,8 @@ import 'package:flutter/foundation.dart';
 
 class ApiConstants {
   // Dynamically set baseUrl based on whether the app is running on Web (Chrome) or Mobile:
-  static const String baseUrl = kIsWeb
-      ? 'http://localhost:5000/api'
-      : 'http://192.168.122.10:5000/api';
+  static const String baseUrl =
+      kIsWeb ? 'http://localhost:5000/api' : 'http://192.168.122.10:5000/api';
 
   // Donor
   static const String registerDonor = '/auth/register-donor';
@@ -20,8 +19,10 @@ class ApiConstants {
   static const String notifications = '/notifications';
   static const String respondNotification = '/notifications/respond';
 
+  // News / Announcements
+  static const String news = '/news';
+
   // Other
   static const String mapCoordinates = '/map/coordinates';
   static const String mapReverse = '/map/reverse';
 }
-

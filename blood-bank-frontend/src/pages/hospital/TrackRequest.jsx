@@ -146,7 +146,14 @@ export default function TrackRequest() {
                         <td className="px-10 py-8">
                           <span className="bg-brand-50 text-brand-600 px-4 py-2 rounded-xl font-black text-sm border border-brand-100">{r.bloodType}</span>
                         </td>
-                        <td className="px-10 py-8 font-black text-slate-900">{r.unitsRequired} <span className="text-[10px] text-slate-400 uppercase ml-1">Units</span></td>
+                        <td className="px-10 py-8 font-black text-slate-900">
+                          {r.unitsRequired} <span className="text-[10px] text-slate-400 uppercase ml-1">Units</span>
+                          {r.dispatches && r.dispatches.length > 0 && (
+                            <div className="text-[10px] text-brand-600 font-bold uppercase mt-1">
+                              Dispatched: {r.dispatches.reduce((sum, d) => sum + Number(d.units || 0), 0)} units
+                            </div>
+                          )}
+                        </td>
                         <td className="px-10 py-8">
                           <span className={clsx(
                             "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border",

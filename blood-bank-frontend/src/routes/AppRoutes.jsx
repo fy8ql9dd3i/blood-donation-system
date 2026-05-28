@@ -40,6 +40,7 @@ import About from '../pages/shared/About'
 import Landing from '../pages/shared/Landing'
 import NewsTicker from '../components/NewsTicker'
 import AppreciationLetters from '../pages/bloodBank/AppreciationLetters'
+import NewsPage from '../pages/shared/NewsPage'
 
 const linkClass = ({ isActive }) =>
   clsx(
@@ -130,7 +131,7 @@ function PublicLayout() {
           </div>
 
           <nav className="hidden md:flex items-center gap-10">
-            {['Services', 'About', 'Contact', 'Emergency'].map((item) => (
+            {['Services', 'About', 'News', 'Contact', 'Emergency'].map((item) => (
               <NavLink
                 key={item}
                 to={`/${item.toLowerCase()}`}
@@ -398,6 +399,7 @@ export default function AppRoutes() {
 
       <Route element={<PublicLayout />}>
         <Route path="/about" element={<About />} />
+        <Route path="/news" element={<NewsPage />} />
         <Route path="/login" element={<Landing />} />
       </Route>
 

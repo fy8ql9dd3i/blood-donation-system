@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import clsx from 'clsx';
 
 export default function NewsWidget() {
@@ -10,7 +10,7 @@ export default function NewsWidget() {
     useEffect(() => {
         const fetchNews = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/news');
+                const res = await api.get('/news');
                 if (res.data.success) {
                     setNewsList(res.data.data);
                 }

@@ -5,7 +5,7 @@ class StorageService {
   static const String _donorIdKey = 'donor_id';
   static const String _donorNameKey = 'donor_name';
   static const String _donorPhoneKey = 'donor_phone';
-  static const String _languageKey = 'app_language'
+  static const String _languageKey = 'app_language';
 
   static SharedPreferences? _prefs;
 

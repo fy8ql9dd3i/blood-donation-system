@@ -34,6 +34,15 @@ export default function ManageInventory() {
   const [filterType, setFilterType] = useState('ALL')
   const [dispatchDefaults, setDispatchDefaults] = useState({ hospitalId: '', bloodType: 'O+', units: 1, requestId: '' })
   const [discardIdInput, setDiscardIdInput] = useState('')
+  const [sortConfig, setSortConfig] = useState({ key: 'expiryDate', direction: 'ascending' })
+
+  const requestSort = (key) => {
+    let direction = 'ascending'
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending'
+    }
+    setSortConfig({ key, direction })
+  }
 
   // --- Queries ---
   const inventoryQ = useQuery({
@@ -145,6 +154,50 @@ export default function ManageInventory() {
   const rows = pickList(inventoryQ.data)
   const filteredRows = filterType === 'ALL' ? rows : rows.filter(r => (r.bloodType || r.blood_type) === filterType)
   const requests = pickList(requestsQ.data)
+
+  const sortedRows = React.useMemo(() => {
+    let sortableRows = [...filteredRows]
+    if (sortConfig.key !== null) {
+      sortableRows.sort((a, b) => {
+        let aValue, bValue
+        
+        switch (sortConfig.key) {
+          case 'bloodId':
+            aValue = a.bloodId || a.blood_id || `BAG-SYS-${a.id}`
+            bValue = b.bloodId || b.blood_id || `BAG-SYS-${b.id}`
+            break
+          case 'bloodType':
+            aValue = a.bloodType || ''
+            bValue = b.bloodType || ''
+            break
+          case 'volume':
+            aValue = Number(a.volume || a.quantity || 0)
+            bValue = Number(b.volume || b.quantity || 0)
+            break
+          case 'expiryDate':
+            aValue = new Date(a.expiryDate || 0)
+            bValue = new Date(b.expiryDate || 0)
+            break
+          case 'stability':
+            aValue = getDaysRemaining(a.expiryDate) || 0
+            bValue = getDaysRemaining(b.expiryDate) || 0
+            break
+          default:
+            aValue = a[sortConfig.key]
+            bValue = b[sortConfig.key]
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'ascending' ? -1 : 1
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'ascending' ? 1 : -1
+        }
+        return 0
+      })
+    }
+    return sortableRows
+  }, [filteredRows, sortConfig])
 
   const getStockCount = (bt) => {
     return rows
@@ -400,19 +453,29 @@ export default function ManageInventory() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] border-b border-slate-100">
-                      <th className="px-10 py-8 text-center">Specimen #</th>
-                      <th className="px-10 py-8 text-center">Biological Type</th>
-                      <th className="px-10 py-8 text-center">Volume (Units / mL)</th>
-                      <th className="px-10 py-8 text-center">Timeline Control</th>
-                      <th className="px-10 py-8 text-center">Stability Status</th>
+                      <th className="px-10 py-8 text-center cursor-pointer hover:bg-slate-100/50 transition-colors" onClick={() => requestSort('bloodId')}>
+                        Specimen # {sortConfig.key === 'bloodId' ? (sortConfig.direction === 'ascending' ? ' ▲' : ' ▼') : ''}
+                      </th>
+                      <th className="px-10 py-8 text-center cursor-pointer hover:bg-slate-100/50 transition-colors" onClick={() => requestSort('bloodType')}>
+                        Biological Type {sortConfig.key === 'bloodType' ? (sortConfig.direction === 'ascending' ? ' ▲' : ' ▼') : ''}
+                      </th>
+                      <th className="px-10 py-8 text-center cursor-pointer hover:bg-slate-100/50 transition-colors" onClick={() => requestSort('volume')}>
+                        Volume (Units / mL) {sortConfig.key === 'volume' ? (sortConfig.direction === 'ascending' ? ' ▲' : ' ▼') : ''}
+                      </th>
+                      <th className="px-10 py-8 text-center cursor-pointer hover:bg-slate-100/50 transition-colors" onClick={() => requestSort('expiryDate')}>
+                        Timeline Control {sortConfig.key === 'expiryDate' ? (sortConfig.direction === 'ascending' ? ' ▲' : ' ▼') : ''}
+                      </th>
+                      <th className="px-10 py-8 text-center cursor-pointer hover:bg-slate-100/50 transition-colors" onClick={() => requestSort('stability')}>
+                        Stability Status {sortConfig.key === 'stability' ? (sortConfig.direction === 'ascending' ? ' ▲' : ' ▼') : ''}
+                      </th>
                       <th className="px-10 py-8 text-right">Operational Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filteredRows.length === 0 ? (
+                    {sortedRows.length === 0 ? (
                       <tr><td colSpan="6" className="p-32 text-center text-slate-300 italic uppercase tracking-[0.4em] text-xs font-black bg-slate-50/50">NO REGISTRY DATA FOUND</td></tr>
                     ) : (
-                      filteredRows.map((r, i) => {
+                      sortedRows.map((r, i) => {
                         const qty = Number(r.quantity || 0)
                         const daysLeft = getDaysRemaining(r.expiryDate)
                         const isExpired = daysLeft < 0
@@ -650,7 +713,14 @@ export default function ManageInventory() {
                                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">{r.urgencyLevel} PRIORITY REQUIREMENT</span>
                                 </div>
                                 <h5 className="text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none mb-2">{r.patientName}</h5>
-                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">Transaction Trace: #{r.id.toString().slice(-8).toUpperCase()}</p>
+                                <div className="flex flex-wrap gap-2 items-center mt-1">
+                                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">Transaction Trace: #{r.id.toString().slice(-8).toUpperCase()}</p>
+                                  {r.dispatches && r.dispatches.length > 0 && (
+                                    <span className="px-2 py-0.5 rounded bg-brand-50 text-brand-600 text-[8px] font-black uppercase tracking-wider">
+                                      Dispatched: {r.dispatches.reduce((sum, d) => sum + Number(d.units || 0), 0)} / {r.unitsRequired} units
+                                    </span>
+                                  )}
+                                </div>
                               </div>
 
                               {/* Supply Chain Analytics */}
@@ -686,10 +756,12 @@ export default function ManageInventory() {
                                     {hasStock ? (
                                       <button
                                         onClick={() => {
+                                          const alreadyDispatched = r.dispatches ? r.dispatches.reduce((sum, d) => sum + Number(d.units || 0), 0) : 0
+                                          const remainingUnits = Math.max(1, r.unitsRequired - alreadyDispatched)
                                           setDispatchDefaults({
                                             hospitalId: r.hospitalId,
                                             bloodType: r.bloodType,
-                                            units: r.unitsRequired,
+                                            units: remainingUnits,
                                             requestId: r._id || r.id
                                           })
                                           window.scrollTo({ top: 0, behavior: 'smooth' })
